@@ -1,0 +1,269 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>mark>like</title>
+<link rel="stylesheet" href="/css/all.min.css">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #0d0d0d; color: #fff;
+  transition: background 0.5s ease;
+}
+body.morning { background: #fef9f3; color: #2a2520; }
+body.afternoon { background: #f5f0e8; color: #2a2520; }
+body.evening { background: #1a1520; color: #fff; }
+body.night { background: #0d0d0d; color: #fff; }
+
+.app {
+  width: 100%; height: 100%; position: relative; overflow: hidden;
+}
+.content {
+  width: 100%; height: 100%; display: flex; flex-direction: column;
+  padding: 70px 28px 100px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.header {
+  position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
+  padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
+  background: rgba(0,0,0,0.5);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.logo { font-size: 20px; font-weight: 700; letter-spacing: -1px; display: flex; align-items: center; gap: 4px; }
+.logo-arrow { color: #c9a96e; }
+.header-actions { display: flex; gap: 12px; }
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  background: rgba(255,255,255,0.15); color: #fff; transition: background 0.2s;
+}
+body.morning .icon-btn,
+body.afternoon .icon-btn { background: rgba(0,0,0,0.08); color: #333; }
+.icon-btn:hover { background: rgba(255,255,255,0.2); }
+.icon-btn svg { width: 20px; height: 20px; stroke-width: 1.5; }
+
+.lang-btn {
+  padding: 6px 14px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.25);
+  background: transparent; color: #fff; font-size: 12px; font-weight: 500; cursor: pointer;
+  transition: all 0.2s;
+}
+body.morning .lang-btn,
+body.afternoon .lang-btn { border-color: rgba(0,0,0,0.2); color: #333; }
+
+.main-text {
+  font-size: 18px; line-height: 2.2; text-align: left;
+  color: #f0f0f0; white-space: pre-wrap; word-break: break-word;
+}
+.main-text::before {
+  content: '› '; color: #c9a96e; font-weight: bold;
+}
+body.morning .main-text,
+body.afternoon .main-text { color: #3a3530; }
+
+.source {
+  text-align: left; font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 20px;
+  padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);
+}
+body.morning .source,
+body.afternoon .source { color: rgba(0,0,0,0.4); border-color: rgba(0,0,0,0.1); }
+
+.actions {
+  position: fixed; bottom: 0; left: 0; width: 100%; z-index: 100;
+  padding: 16px 20px; display: flex; justify-content: center; align-items: center; gap: 16px;
+  background: rgba(0,0,0,0.6);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+}
+.action-btn {
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer;
+  color: rgba(255,255,255,0.7); font-size: 18px; transition: all 0.2s;
+}
+body.morning .action-btn,
+body.afternoon .action-btn { color: rgba(255,255,255,0.7); }
+.action-btn:hover { color: #4da6ff; transform: scale(1.1); }
+.action-btn.active { color: #4da6ff; }
+
+.loading { text-align: center; padding: 60px; color: rgba(255,255,255,0.5); }
+</style>
+</head>
+<body class="night">
+<div class="app">
+  <div class="header">
+    <div class="logo">mark<span class="logo-arrow">></span>like</div>
+    <div class="header-actions">
+      <button class="lang-btn" id="langBtn">EN</button>
+      <button class="icon-btn" id="userBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="content" id="content">
+    <div class="loading">加载中...</div>
+  </div>
+
+  <div class="actions">
+    <button class="action-btn" id="copyBtn" title="复制">
+      <i class="fas fa-copy"></i>
+    </button>
+    <button class="action-btn" id="bookmarkBtn" title="书签">
+      <i class="fas fa-bookmark"></i>
+    </button>
+    <button class="action-btn" id="shareBtn" title="分享">
+      <i class="fas fa-share"></i>
+    </button>
+    <button class="action-btn" id="refreshBtn" title="刷新">
+      <i class="fas fa-sync"></i>
+    </button>
+  </div>
+</div>
+
+<script>
+function setTheme() {
+  const hour = new Date().getHours();
+  const body = document.body;
+  body.className = '';
+  if (hour >= 6 && hour < 12) body.classList.add('morning');
+  else if (hour >= 12 && hour < 17) body.classList.add('afternoon');
+  else if (hour >= 17 && hour < 19) body.classList.add('evening');
+  else body.classList.add('night');
+}
+setTheme();
+
+const API = "/api";
+let currentPage = 1;
+let totalPages = 1;
+let currentIndex = 0;
+let slices = [];
+let lang = 'zh';
+let currentSliceId = null;
+let isAnimating = false;
+
+async function loadSlices() {
+  try {
+    const res = await fetch(API + "/premium?page=" + currentPage + "&limit=100");
+    const data = await res.json();
+    slices = data.slices || [];
+    totalPages = data.pagination.totalPages || 1;
+    // 随机选择一条
+    currentIndex = Math.floor(Math.random() * slices.length);
+    renderCurrent();
+  } catch (err) {
+    document.getElementById("content").innerHTML = '<div class="loading">加载失败</div>';
+  }
+}
+
+function renderCurrent() {
+  const s = slices[currentIndex];
+  if (!s) return;
+  
+  currentSliceId = s.id;
+  let displayText = s.modern || s.content || '';
+  if (lang === 'en' && s.english) displayText = s.english;
+  
+  document.getElementById("content").innerHTML = `
+    <div class="main-text">${displayText}</div>
+    <div class="source">${s.source || '佚名'}</div>
+  `;
+  
+  document.getElementById("content").scrollTop = 0;
+}
+
+function goToSlice(direction) {
+  if (isAnimating) return;
+  isAnimating = true;
+  
+  const content = document.getElementById("content");
+  content.style.transform = direction > 0 ? 'translateY(-20%)' : 'translateY(20%)';
+  content.style.opacity = '0.5';
+  
+  setTimeout(() => {
+    if (direction > 0) currentIndex++;
+    else currentIndex--;
+    
+    if (currentIndex >= slices.length) {
+      if (currentPage < totalPages) { currentPage++; loadSlices(); }
+      else { currentIndex = slices.length - 1; }
+    } else if (currentIndex < 0) {
+      if (currentPage > 1) { currentPage--; loadSlices(); }
+      else { currentIndex = 0; }
+    } else {
+      renderCurrent();
+    }
+    
+    content.style.transform = direction > 0 ? 'translateY(20%)' : 'translateY(-20%)';
+    setTimeout(() => {
+      content.style.transform = 'translateY(0)';
+      content.style.opacity = '1';
+      isAnimating = false;
+    }, 50);
+  }, 200);
+}
+
+document.getElementById("langBtn").onclick = () => {
+  lang = lang === 'zh' ? 'en' : 'zh';
+  document.getElementById("langBtn").textContent = lang === 'zh' ? 'EN' : '中文';
+  renderCurrent();
+};
+
+document.getElementById("userBtn").onclick = () => {
+  alert("用户中心\nID: " + currentSliceId);
+};
+
+document.getElementById("copyBtn").onclick = () => {
+  const text = document.querySelector('.main-text')?.textContent || '';
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.getElementById("copyBtn");
+    btn.classList.add("active");
+    setTimeout(() => btn.classList.remove("active"), 1000);
+  });
+};
+
+document.getElementById("bookmarkBtn").onclick = () => {
+  document.getElementById("bookmarkBtn").classList.toggle("active");
+};
+
+document.getElementById("shareBtn").onclick = () => {
+  const url = window.location.href;
+  if (navigator.share) {
+    navigator.share({ title: 'mark>like', url: url });
+  } else {
+    navigator.clipboard.writeText(url);
+    const btn = document.getElementById("shareBtn");
+    btn.classList.add("active");
+    setTimeout(() => btn.classList.remove("active"), 1000);
+  }
+};
+
+document.getElementById("refreshBtn").onclick = () => {
+  const btn = document.getElementById("refreshBtn");
+  btn.classList.add("active");
+  loadSlices();
+  setTimeout(() => btn.classList.remove("active"), 500);
+};
+
+let touchStartY = 0;
+document.addEventListener("touchstart", (e) => { touchStartY = e.changedTouches[0].screenY; }, { passive: true });
+document.addEventListener("touchend", (e) => {
+  const diff = e.changedTouches[0].screenY - touchStartY;
+  if (diff < -80) goToSlice(1);
+  if (diff > 80) goToSlice(-1);
+}, { passive: true });
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === 'ArrowDown' || e.key === ' ') goToSlice(1);
+  if (e.key === 'ArrowUp') goToSlice(-1);
+});
+
+loadSlices();
+</script>
+</body>
+</html>
