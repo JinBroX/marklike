@@ -1,0 +1,210 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Marklike</title>
+  <style>
+    * {
+      margin: 0;
+      padding: 0;
+      box-sizing: border-box;
+    }
+
+    body {
+      font-family: system-ui, -apple-system, sans-serif;
+      background: #f7f5f2;
+      color: #222;
+      padding: 20px;
+      min-height: 100vh;
+      line-height: 1.8;
+    }
+
+    .top {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 30px;
+    }
+
+    .lang {
+      padding: 6px 12px;
+      border: 1px solid #333;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .lang:hover {
+      background: #333;
+      color: #fff;
+    }
+
+    .user {
+      padding: 6px 12px;
+      border: 1px solid #333;
+      border-radius: 20px;
+      cursor: pointer;
+      font-size: 14px;
+      transition: all 0.2s;
+    }
+    .user:hover {
+      background: #333;
+      color: #fff;
+    }
+
+    .content {
+      min-height: 70vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 16px;
+      text-align: justify;
+      white-space: pre-line;
+      max-width: 800px;
+      margin: 0 auto;
+    }
+
+    .nav {
+      display: flex;
+      justify-content: center;
+      gap: 30px;
+      margin-top: 20px;
+    }
+
+    button {
+      padding: 12px 24px;
+      background: #333;
+      color: white;
+      border: none;
+      border-radius: 30px;
+      font-size: 16px;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    button:hover {
+      background: #555;
+    }
+
+    .modal {
+      display: none;
+      position: fixed;
+      top: 0;
+      left: 0;
+      width: 100%;
+      height: 100%;
+      background: rgba(0,0,0,0.5);
+      align-items: center;
+      justify-content: center;
+      z-index: 999;
+    }
+
+    .modal-box {
+      background: white;
+      padding: 30px;
+      border-radius: 12px;
+      text-align: center;
+      max-width: 400px;
+      width: 90%;
+    }
+  </style>
+</head>
+
+<body>
+  <div class="top">
+    <div class="lang" onclick="toggleLang()">中文</div>
+    <div class="user" onclick="openUser()">用户中心</div>
+  </div>
+
+  <div class="content" id="text">加载中...</div>
+
+  <div class="nav">
+    <button onclick="prev()">上一段</button>
+    <button onclick="next()">下一段</button>
+  </div>
+
+  <div class="modal" id="limitModal">
+    <div class="modal-box">
+      <h3>今日免费次数已用完</h3>
+      <p>今日已看30条，解锁全部内容请升级会员</p>
+      <button onclick="closeModal()" style="margin-top: 20px;">知道了</button>
+    </div>
+  </div>
+
+  <script>
+    const API = "http://43.128.101.103:3011/api";
+    let currentId = 1;
+    let dailyCount = 0;
+    const MAX_FREE = 30;
+    let currentLang = "zh";
+
+    // 页面加载自动拉取第一条
+    window.onload = () => {
+      loadSlice(currentId);
+    };
+
+    // 拉取切片内容
+    async function loadSlice(id) {
+      try {
+        const res = await fetch(`${API}/slice/${id}`);
+        if (!res.ok) throw new Error("接口异常");
+        const data = await res.json();
+        document.getElementById("text").innerText = data.content || "暂无更多内容";
+      } catch (err) {
+        // 接口不通时的兜底文案，不影响页面运行
+        document.getElementById("text").innerText = "Marklike · 轻量化文本碎片\n\n接口连接中，请稍后重试...\n\n当前为本地演示模式，滑动可查看占位内容";
+      }
+    }
+
+    // 下一段
+    function next() {
+      if (dailyCount >= MAX_FREE) {
+        document.getElementById("limitModal").style.display = "flex";
+        return;
+      }
+      currentId++;
+      dailyCount++;
+      loadSlice(currentId);
+    }
+
+    // 上一段
+    function prev() {
+      if (currentId > 1) {
+        currentId--;
+        loadSlice(currentId);
+      }
+    }
+
+    // 中英文切换
+    function toggleLang() {
+      currentLang = currentLang === "zh" ? "en" : "zh";
+      document.querySelector(".lang").innerText = currentLang === "zh" ? "中文" : "English";
+      // 后续接口支持双语后，这里会自动拉取对应语言内容
+      loadSlice(currentId);
+    }
+
+    // 用户中心
+    function openUser() {
+      alert(`Marklike 用户中心\n今日已读：${dailyCount}/${MAX_FREE} 条\n\n后续可在此查看会员状态、阅读历史、设置偏好`);
+    }
+
+    // 关闭弹窗
+    function closeModal() {
+      document.getElementById("limitModal").style.display = "none";
+    }
+
+    // 移动端左右滑动切换
+    let touchStartX = 0;
+    document.addEventListener("touchstart", (e) => {
+      touchStartX = e.changedTouches[0].screenX;
+    }, { passive: true });
+    document.addEventListener("touchend", (e) => {
+      const touchEndX = e.changedTouches[0].screenX;
+      const diff = touchEndX - touchStartX;
+      // 左滑50px以上=下一段，右滑50px以上=上一段
+      if (diff < -50) next();
+      if (diff > 50) prev();
+    }, { passive: true });
+  </script>
+</body>
+</html>
