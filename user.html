@@ -404,6 +404,7 @@ body.afternoon .logo-mark { color: #2a2520; }
       </a>
     </div>
     <div class="header-right">
+      <button class="btn btn-outline" id="logoutBtn" onclick="localStorage.removeItem('token');localStorage.removeItem('user');window.location.href='login.html';">退出登录</button>
       <a href="index.html" class="btn btn-outline">返回首页</a>
     </div>
   </header>
@@ -519,14 +520,16 @@ body.afternoon .logo-mark { color: #2a2520; }
       }
       
       // Load favorites
-      loadFavorites(user.id);
+      loadFavorites();
     }
     
-    async function loadFavorites(userId) {
+    async function loadFavorites() {
       const container = document.getElementById('favoritesContent');
       
       try {
-        const res = await fetch(`${API}/favorites?user_id=${userId}`);
+        const res = await fetch(`${API}/favorites`, {
+          headers: { 'Authorization': localStorage.getItem('token') || '' }
+        });
         const data = await res.json();
         
         if (data.favorites && data.favorites.length > 0) {
@@ -581,12 +584,12 @@ body.afternoon .logo-mark { color: #2a2520; }
       try {
         const res = await fetch(`${API}/favorites`, {
           method: 'DELETE',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ user_id: user.id, slice_id: sliceId })
+          headers: { 'Content-Type': 'application/json', 'Authorization': localStorage.getItem('token') || '' },
+          body: JSON.stringify({ slice_id: sliceId })
         });
         
         if (res.ok) {
-          loadFavorites(user.id);
+          loadFavorites();
         }
       } catch (err) {
         alert('取消收藏失败');
