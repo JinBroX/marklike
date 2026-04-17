@@ -126,20 +126,7 @@ body.afternoon .action-btn { color: rgba(0,0,0,0.7); }
     <div class="loading">加载中...</div>
   </div>
 
-  <div class="actions">
-    <button class="action-btn" id="copyBtn" title="复制">
-      <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
-    </button>
-    <button class="action-btn" id="bookmarkBtn" title="书签">
-      <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
-    </button>
-    <button class="action-btn" id="shareBtn" title="分享">
-      <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-    </button>
-    <button class="action-btn" id="refreshBtn" title="刷新">
-      <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-    </button>
-  </div>
+
 </div>
 
 <script>
@@ -208,8 +195,28 @@ function renderCurrent() {
   let displayText = s.modern || s.content || '';
   if (lang === 'en' && s.english) displayText = s.english;
   
+  const isFav = favoritedIds.has(s.id);
   document.getElementById("content").innerHTML = `
     <div class="main-text">${displayText}</div>
+    <div class="content-divider"></div>
+    <div class="content-actions">
+      <button class="ca-btn" onclick="copyText()" title="复制">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+        <span>复制</span>
+      </button>
+      <button class="ca-btn fav-btn${isFav ? ' active' : ''}" onclick="toggleContentFav()" id="contentFavBtn">
+        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        <span>${isFav ? '已收藏' : '收藏'}</span>
+      </button>
+      <button class="ca-btn" onclick="shareContent()" title="分享">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
+        <span>分享</span>
+      </button>
+      <button class="ca-btn" onclick="refreshContent()" title="刷新">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
+        <span>刷新</span>
+      </button>
+    </div>
     <div class="source">${s.source || '佚名'}</div>
   `;
   
@@ -263,61 +270,6 @@ document.getElementById("userBtn").onclick = () => {
   }
 };
 
-document.getElementById("copyBtn").onclick = () => {
-  const text = document.querySelector('.main-text')?.textContent || '';
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.getElementById("copyBtn");
-    btn.classList.add("active");
-    setTimeout(() => btn.classList.remove("active"), 1000);
-  });
-};
-
-document.getElementById("bookmarkBtn").onclick = async () => {
-  const btn = document.getElementById("bookmarkBtn");
-  if (!currentSliceId) return;
-  
-  const isActive = btn.classList.contains("active");
-  const token = localStorage.getItem("token");
-  try {
-    const res = await fetch(API + "/favorites", {
-      method: isActive ? "DELETE" : "POST",
-      headers: { "Content-Type": "application/json", "Authorization": token || "" },
-      body: JSON.stringify({ slice_id: currentSliceId })
-    });
-    if (res.ok) {
-      btn.classList.toggle("active");
-      if (isActive) {
-        favoritedIds.delete(currentSliceId);
-      } else {
-        favoritedIds.add(currentSliceId);
-      }
-    } else {
-      alert("收藏失败，请先登录");
-    }
-  } catch(e) {
-    // 网络错误也切换状态，允许离线使用
-    btn.classList.toggle("active");
-  }
-};
-
-document.getElementById("shareBtn").onclick = () => {
-  const url = window.location.href;
-  if (navigator.share) {
-    navigator.share({ title: 'mark>like', url: url });
-  } else {
-    navigator.clipboard.writeText(url);
-    const btn = document.getElementById("shareBtn");
-    btn.classList.add("active");
-    setTimeout(() => btn.classList.remove("active"), 1000);
-  }
-};
-
-document.getElementById("refreshBtn").onclick = () => {
-  const btn = document.getElementById("refreshBtn");
-  btn.classList.add("active");
-  loadSlices();
-  setTimeout(() => btn.classList.remove("active"), 500);
-};
 
 let touchStartY = 0;
 document.addEventListener("touchstart", (e) => { touchStartY = e.changedTouches[0].screenY; }, { passive: true });
@@ -336,7 +288,7 @@ function toggleContentFav() {
   if (!currentSliceId) return;
   const token = localStorage.getItem("token");
   if (!token) { alert("请先登录"); return; }
-  const btn = document.querySelector('.content-fav-btn');
+  const btn = document.getElementById('contentFavBtn');
   const isActive = btn.classList.contains('active');
   fetch(API + "/favorites", {
     method: isActive ? "DELETE" : "POST",
@@ -354,6 +306,34 @@ function toggleContentFav() {
       }
     }
   });
+}
+
+function copyText() {
+  const text = document.querySelector('.main-text')?.textContent || '';
+  navigator.clipboard.writeText(text).then(() => {
+    const btn = document.querySelector('.ca-btn[onclick="copyText()"]');
+    btn.classList.add('active');
+    setTimeout(() => btn.classList.remove('active'), 1000);
+  });
+}
+
+function shareContent() {
+  const url = window.location.href;
+  if (navigator.share) {
+    navigator.share({ title: 'mark>like', url: url });
+  } else {
+    navigator.clipboard.writeText(url);
+    const btn = document.querySelector('.ca-btn[onclick="shareContent()"]');
+    btn.classList.add('active');
+    setTimeout(() => btn.classList.remove('active'), 1000);
+  }
+}
+
+function refreshContent() {
+  const btn = document.querySelector('.ca-btn[onclick="refreshContent()"]');
+  btn.classList.add('active');
+  loadSlices();
+  setTimeout(() => btn.classList.remove('active'), 500);
 }
 
 loadFavorites().then(() => loadSlices());

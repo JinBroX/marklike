@@ -50,3 +50,115 @@ body.afternoon .content-fav-btn {
 .content-fav-btn:active {
   transform: scale(0.95);
 }
+
+/* 内容区域功能按钮 */
+.content-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+  margin: 16px 0;
+}
+body.morning .content-divider,
+body.afternoon .content-divider {
+  background: rgba(42,37,32,0.15);
+}
+.content-actions {
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0;
+}
+.ca-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 4px;
+  padding: 8px 12px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+  min-width: 60px;
+}
+body.morning .ca-btn,
+body.afternoon .ca-btn {
+  color: rgba(42,37,32,0.5);
+}
+.ca-btn svg {
+  width: 20px;
+  height: 20px;
+}
+.ca-btn span {
+  font-size: 11px;
+}
+.ca-btn:active {
+  transform: scale(0.9);
+}
+.ca-btn.active {
+  color: #c9a96e;
+}
+.ca-btn.fav-btn.active {
+  color: #c9a96e;
+}
+.ca-btn.fav-btn.active svg {
+  fill: #c9a96e;
+}
+/* 隐藏底部工具栏 */
+.actions {
+  display: none !important;
+}
+
+/* 内容区域功能按钮 */
+.content-divider {
+  height: 1px;
+  background: rgba(255,255,255,0.1);
+  margin: 12px 0;
+}
+body.morning .content-divider,
+body.afternoon .content-divider {
+  background: rgba(42,37,32,0.15);
+}
+.content-actions {
+  display: flex;
+  justify-content: space-around;
+  padding: 8px 0 12px;
+}
+.ca-btn {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 3px;
+  padding: 6px 10px;
+  border: none;
+  background: transparent;
+  color: rgba(255,255,255,0.5);
+  cursor: pointer;
+  border-radius: 8px;
+  transition: all 0.2s;
+  min-width: 50px;
+}
+body.morning .ca-btn,
+body.afternoon .ca-btn {
+  color: rgba(42,37,32,0.5);
+}
+.ca-btn svg {
+  width: 18px;
+  height: 18px;
+}
+.ca-btn span {
+  font-size: 10px;
+}
+.ca-btn:active {
+  transform: scale(0.9);
+}
+.ca-btn.active {
+  color: #c9a96e;
+}
+.ca-btn.fav-btn.active svg {
+  fill: #c9a96e;
+}
+.ca-btn.fav-btn.active {
+  color: #c9a96e;
+}
+/* 隐藏底部工具栏 */
+.actions { display: none !important; }
