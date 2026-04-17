@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>用户中心 - Marklike</title>
+  <style>
+    * { margin: 0; padding: 0; box-sizing: border-box; }
+    
+    body {
+      font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
+      min-height: 100vh;
+      transition: background 0.5s ease, color 0.5s ease;
+    }
+    
+    body.morning { background: linear-gradient(135deg, #f5f0e8 0%, #fff8f0 100%); color: #2a2520; }
+    body.afternoon { background: linear-gradient(135deg, #fff8f0 0%, #fff5e6 100%); color: #2a2520; }
+    body.evening { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #e8d5c4; }
+    body.night { background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%); color: #c4b8a8; }
+    
+    .header {
+      padding: 20px 24px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      border-bottom: 1px solid rgba(128,128,128,0.15);
+    }
+    
+    body.morning .header,
+    body.afternoon .header {
+      background: rgba(255,255,255,0.7);
+      backdrop-filter: blur(10px);
+    }
+    
+    body.evening .header,
+    body.night .header {
+      background: rgba(255,255,255,0.03);
+    }
+    
+    .header-left {
+      display: flex;
+      align-items: center;
+      gap: 16px;
+    }
+    
+    .logo {
+      font-size: 20px;
+      font-weight: 700;
+      letter-spacing: -1px;
+      display: flex;
+      align-items: center;
+      gap: 4px;
+    }
+    .logo-arrow { color: #c9a96e; }
+    
+    .header-right {
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+    
+    .btn {
+      padding: 8px 16px;
+      border-radius: 8px;
+      font-size: 14px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      text-decoration: none;
+    }
+    
+    .btn-outline {
+      background: transparent;
+      border: 1px solid #c9a96e;
+      color: #c9a96e;
+    }
+    
+    .btn-outline:hover {
+      background: rgba(201,169,110,0.15);
+    }
+    
+    .btn-primary {
+      background: linear-gradient(135deg, #c9a96e 0%, #b8956a 100%);
+      color: #fff;
+      border: none;
+    }
+    
+    .btn-primary:hover {
+      box-shadow: 0 4px 12px rgba(201,169,110,0.3);
+    }
+    
+    .container {
+      max-width: 900px;
+      margin: 0 auto;
+      padding: 32px 24px;
+    }
+    
+    /* User Info Section */
+    .user-info {
+      display: flex;
+      align-items: center;
+      gap: 20px;
+      padding: 24px;
+      border-radius: 16px;
+      margin-bottom: 32px;
+    }
+    
+    body.morning .user-info,
+    body.afternoon .user-info {
+      background: rgba(255,255,255,0.8);
+      box-shadow: 0 2px 16px rgba(0,0,0,0.06);
+    }
+    
+    body.evening .user-info,
+    body.night .user-info {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.1);
+    }
+    
+    .avatar {
+      width: 72px;
+      height: 72px;
+      border-radius: 50%;
+      background: linear-gradient(135deg, #c9a96e 0%, #b8956a 100%);
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      font-weight: 700;
+      color: #fff;
+    }
+    
+    .user-details {
+      flex: 1;
+    }
+    
+    .username {
+      font-size: 24px;
+      font-weight: 700;
+      margin-bottom: 4px;
+    }
+    
+    .email {
+      font-size: 14px;
+      opacity: 0.7;
+      margin-bottom: 8px;
+    }
+    
+    .vip-badge {
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      padding: 4px 12px;
+      border-radius: 20px;
+      font-size: 12px;
+      font-weight: 600;
+    }
+    
+    .vip-badge.active {
+      background: linear-gradient(135deg, #c9a96e 0%, #b8956a 100%);
+      color: #fff;
+    }
+    
+    .vip-badge.inactive {
+      background: rgba(128,128,128,0.2);
+      color: #888;
+    }
+    
+    .vip-expire {
+      font-size: 12px;
+      opacity: 0.7;
+      margin-top: 4px;
+    }
+    
+    /* VIP Card */
+    .vip-card {
+      padding: 24px;
+      border-radius: 16px;
+      margin-bottom: 32px;
+      background: linear-gradient(135deg, #c9a96e 0%, #8b6914 100%);
+      color: #fff;
+    }
+    
+    .vip-card-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    
+    .vip-title {
+      font-size: 20px;
+      font-weight: 700;
+    }
+    
+    .vip-benefits {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+      gap: 12px;
+      margin-bottom: 20px;
+    }
+    
+    .vip-benefit {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      font-size: 14px;
+      opacity: 0.95;
+    }
+    
+    .vip-benefit-icon {
+      width: 20px;
+      height: 20px;
+      background: rgba(255,255,255,0.2);
+      border-radius: 50%;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 12px;
+    }
+    
+    .btn-vip {
+      width: 100%;
+      padding: 14px;
+      background: #fff;
+      color: #8b6914;
+      border: none;
+      border-radius: 10px;
+      font-size: 16px;
+      font-weight: 600;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .btn-vip:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 16px rgba(0,0,0,0.2);
+    }
+    
+    /* Tabs */
+    .tabs {
+      display: flex;
+      gap: 8px;
+      margin-bottom: 24px;
+      border-bottom: 1px solid rgba(128,128,128,0.15);
+      padding-bottom: 16px;
+    }
+    
+    .tab {
+      padding: 10px 20px;
+      border-radius: 8px;
+      font-size: 15px;
+      font-weight: 500;
+      cursor: pointer;
+      transition: all 0.3s;
+      background: transparent;
+      border: none;
+      color: inherit;
+    }
+    
+    .tab.active {
+      background: rgba(201,169,110,0.15);
+      color: #c9a96e;
+    }
+    
+    .tab:hover:not(.active) {
+      background: rgba(128,128,128,0.1);
+    }
+    
+    /* Favorites List */
+    .favorites-list {
+      display: flex;
+      flex-direction: column;
+      gap: 16px;
+    }
+    
+    .favorite-item {
+      padding: 20px;
+      border-radius: 12px;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    body.morning .favorite-item,
+    body.afternoon .favorite-item {
+      background: rgba(255,255,255,0.8);
+      box-shadow: 0 2px 12px rgba(0,0,0,0.05);
+    }
+    
+    body.evening .favorite-item,
+    body.night .favorite-item {
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.08);
+    }
+    
+    .favorite-item:hover {
+      transform: translateY(-2px);
+      box-shadow: 0 4px 20px rgba(0,0,0,0.1);
+    }
+    
+    .favorite-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: flex-start;
+      margin-bottom: 8px;
+    }
+    
+    .favorite-title {
+      font-size: 16px;
+      font-weight: 600;
+      color: #c9a96e;
+    }
+    
+    .favorite-source {
+      font-size: 12px;
+      opacity: 0.6;
+    }
+    
+    .favorite-content {
+      font-size: 14px;
+      line-height: 1.6;
+      display: -webkit-box;
+      -webkit-line-clamp: 2;
+      -webkit-box-orient: vertical;
+      overflow: hidden;
+    }
+    
+    .favorite-date {
+      font-size: 12px;
+      opacity: 0.5;
+      margin-top: 8px;
+    }
+    
+    .remove-btn {
+      padding: 4px 10px;
+      border-radius: 6px;
+      font-size: 12px;
+      background: rgba(231,76,60,0.1);
+      color: #e74c3c;
+      border: none;
+      cursor: pointer;
+      transition: all 0.3s;
+    }
+    
+    .remove-btn:hover {
+      background: rgba(231,76,60,0.2);
+    }
+    
+    .empty-state {
+      text-align: center;
+      padding: 60px 20px;
+      opacity: 0.6;
+    }
+    
+    .empty-icon {
+      font-size: 48px;
+      margin-bottom: 16px;
+    }
+    
+    .empty-text {
+      font-size: 16px;
+      margin-bottom: 8px;
+    }
+    
+    .empty-hint {
+      font-size: 14px;
+      opacity: 0.7;
+    }
+    
+    .loading {
+      text-align: center;
+      padding: 40px;
+      opacity: 0.6;
+    }
+    
+    .login-required {
+      text-align: center;
+      padding: 80px 20px;
+    }
+    
+    .login-required h2 {
+      font-size: 24px;
+      margin-bottom: 12px;
+    }
+    
+    .login-required p {
+      opacity: 0.7;
+      margin-bottom: 24px;
+    }
+  </style>
+</head>
+<body class="morning">
+  <header class="header">
+    <div class="header-left">
+      <a href="index.html" class="logo" style="text-decoration: none; color: inherit;">
+        <span class="logo-arrow">></span>
+        <span>mark</span>
+        <span style="color: #c9a96e">like</span>
+      </a>
+    </div>
+    <div class="header-right">
+      <a href="index.html" class="btn btn-outline">返回首页</a>
+    </div>
+  </header>
+  
+  <div class="container">
+    <div id="loginRequired" class="login-required" style="display: none;">
+      <h2>请先登录</h2>
+      <p>登录后即可查看您的收藏和会员信息</p>
+      <a href="login.html" class="btn btn-primary">去登录</a>
+    </div>
+    
+    <div id="userContent" style="display: none;">
+      <!-- User Info -->
+      <div class="user-info">
+        <div class="avatar" id="avatar">?</div>
+        <div class="user-details">
+          <div class="username" id="username">加载中...</div>
+          <div class="email" id="email"></div>
+          <div id="vipBadge" class="vip-badge inactive">
+            <span>普通用户</span>
+          </div>
+          <div class="vip-expire" id="vipExpire"></div>
+        </div>
+      </div>
+      
+      <!-- VIP Card -->
+      <div class="vip-card" id="vipCard">
+        <div class="vip-card-header">
+          <div class="vip-title" id="vipTitle">开通 VIP</div>
+        </div>
+        <div class="vip-benefits">
+          <div class="vip-benefit">
+            <span class="vip-benefit-icon">✓</span>
+            <span>无限收藏</span>
+          </div>
+          <div class="vip-benefit">
+            <span class="vip-benefit-icon">✓</span>
+            <span>专属古籍内容</span>
+          </div>
+          <div class="vip-benefit">
+            <span class="vip-benefit-icon">✓</span>
+            <span>白话译文</span>
+          </div>
+          <div class="vip-benefit">
+            <span class="vip-benefit-icon">✓</span>
+            <span>英文翻译</span>
+          </div>
+        </div>
+        <button class="btn-vip" id="upgradeBtn">立即开通 VIP</button>
+      </div>
+      
+      <!-- Tabs -->
+      <div class="tabs">
+        <button class="tab active" data-tab="favorites">我的收藏</button>
+      </div>
+      
+      <!-- Favorites List -->
+      <div id="favoritesContent">
+        <div class="loading">加载中...</div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const API = 'http://43.128.101.103:3011/api';
+    
+    // Apply theme
+    const hour = new Date().getHours();
+    if (hour >= 6 && hour < 12) document.body.className = 'morning';
+    else if (hour >= 12 && hour < 18) document.body.className = 'afternoon';
+    else if (hour >= 18 && hour < 22) document.body.className = 'evening';
+    else document.body.className = 'night';
+    
+    // Check login status
+    const user = JSON.parse(localStorage.getItem('user') || 'null');
+    
+    if (!user) {
+      document.getElementById('loginRequired').style.display = 'block';
+    } else {
+      document.getElementById('userContent').style.display = 'block';
+      initUserPage(user);
+    }
+    
+    async function initUserPage(user) {
+      // Set user info
+      document.getElementById('avatar').textContent = user.username ? user.username.charAt(0).toUpperCase() : 'U';
+      document.getElementById('username').textContent = user.username || '用户';
+      document.getElementById('email').textContent = user.email || '';
+      
+      // Update VIP status
+      const vipBadge = document.getElementById('vipBadge');
+      const vipTitle = document.getElementById('vipTitle');
+      const vipCard = document.getElementById('vipCard');
+      const upgradeBtn = document.getElementById('upgradeBtn');
+      
+      if (user.is_vip == 1) {
+        vipBadge.className = 'vip-badge active';
+        vipBadge.innerHTML = '<span>★</span><span>VIP 会员</span>';
+        
+        if (user.vip_expire_at) {
+          const expireDate = new Date(user.vip_expire_at);
+          document.getElementById('vipExpire').textContent = `有效期至：${expireDate.toLocaleDateString('zh-CN')}`;
+        }
+        
+        vipTitle.textContent = '您已是 VIP 会员';
+        upgradeBtn.textContent = '续费 VIP';
+        upgradeBtn.style.background = 'rgba(255,255,255,0.2)';
+        upgradeBtn.style.color = '#fff';
+      } else {
+        vipBadge.className = 'vip-badge inactive';
+        vipBadge.innerHTML = '<span>普通用户</span>';
+        document.getElementById('vipExpire').textContent = '';
+      }
+      
+      // Load favorites
+      loadFavorites(user.id);
+    }
+    
+    async function loadFavorites(userId) {
+      const container = document.getElementById('favoritesContent');
+      
+      try {
+        const res = await fetch(`${API}/favorites?user_id=${userId}`);
+        const data = await res.json();
+        
+        if (data.favorites && data.favorites.length > 0) {
+          let html = '<div class="favorites-list">';
+          
+          data.favorites.forEach(item => {
+            const date = item.created_at ? new Date(item.created_at).toLocaleDateString('zh-CN') : '';
+            const title = item.title || '无标题';
+            const content = item.content ? item.content.substring(0, 100) + '...' : '';
+            const source = item.source || '';
+            
+            html += `
+              <div class="favorite-item" onclick="viewSlice(${item.slice_id})">
+                <div class="favorite-header">
+                  <div>
+                    <div class="favorite-title">${title}</div>
+                    <div class="favorite-source">${source}</div>
+                  </div>
+                  <button class="remove-btn" onclick="event.stopPropagation(); removeFavorite(${item.slice_id})">取消收藏</button>
+                </div>
+                <div class="favorite-content">${content}</div>
+                <div class="favorite-date">收藏于 ${date}</div>
+              </div>
+            `;
+          });
+          
+          html += '</div>';
+          container.innerHTML = html;
+        } else {
+          container.innerHTML = `
+            <div class="empty-state">
+              <div class="empty-icon">☆</div>
+              <div class="empty-text">暂无收藏</div>
+              <div class="empty-hint">浏览古籍时点击书签图标即可收藏</div>
+            </div>
+          `;
+        }
+      } catch (err) {
+        container.innerHTML = '<div class="empty-state"><div class="empty-text">加载失败，请刷新重试</div></div>';
+      }
+    }
+    
+    function viewSlice(sliceId) {
+      // Navigate to index with slice ID
+      window.location.href = `index.html?slice=${sliceId}`;
+    }
+    
+    async function removeFavorite(sliceId) {
+      const user = JSON.parse(localStorage.getItem('user') || 'null');
+      if (!user) return;
+      
+      try {
+        const res = await fetch(`${API}/favorites`, {
+          method: 'DELETE',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ user_id: user.id, slice_id: sliceId })
+        });
+        
+        if (res.ok) {
+          loadFavorites(user.id);
+        }
+      } catch (err) {
+        alert('取消收藏失败');
+      }
+    }
+    
+    // VIP upgrade button
+    document.getElementById('upgradeBtn')?.addEventListener('click', () => {
+      alert('VIP 开通功能即将上线，请联系管理员开通');
+    });
+    
+    // Logout
+    function logout() {
+      localStorage.removeItem('user');
+      localStorage.removeItem('token');
+      window.location.href = 'index.html';
+    }
+  </script>
+</body>
+</html>

@@ -226,7 +226,12 @@ document.getElementById("langBtn").onclick = () => {
 };
 
 document.getElementById("userBtn").onclick = () => {
-  alert("用户中心\nID: " + currentSliceId);
+  const user = localStorage.getItem('user');
+  if (user) {
+    window.location.href = 'user.html';
+  } else {
+    window.location.href = 'login.html';
+  }
 };
 
 document.getElementById("copyBtn").onclick = () => {
