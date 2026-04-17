@@ -116,10 +116,7 @@ body.afternoon .action-btn { color: rgba(0,0,0,0.7); }
     <div class="logo"><span class="logo-mark">mark</span><span class="logo-arrow"></span><span class="logo-like">like</span></div>
     <div class="header-actions">
       <button class="lang-btn" id="langBtn">EN</button>
-      <button class="icon-btn" id="logoutBtn" title="退出登录">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4"/><polyline points="16 17 21 12 16 7"/><line x1="21" y1="12" x2="9" y2="12"/></svg>
-      </button>
-      <button class="icon-btn" id="userBtn">
+            <button class="icon-btn" id="userBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
       </button>
     </div>
@@ -168,12 +165,11 @@ let isAnimating = false;
 
 async function loadSlices() {
   try {
-    const res = await fetch(API + "/premium?page=" + currentPage + "&limit=100");
+    const res = await fetch(API + "/random");
     const data = await res.json();
-    slices = data.slices || [];
-    totalPages = data.pagination.totalPages || 1;
-    // 随机选择一条
-    currentIndex = Math.floor(Math.random() * slices.length);
+    slices = data.slice ? [data.slice] : [];
+    totalPages = 1;
+    currentIndex = 0;
     renderCurrent();
   } catch (err) {
     document.getElementById("content").innerHTML = '<div class="loading">加载失败</div>';
@@ -236,17 +232,10 @@ document.getElementById("langBtn").onclick = () => {
 document.getElementById("userBtn").onclick = () => {
   const user = localStorage.getItem('user');
   if (user) {
-    document.getElementById('logoutBtn').style.display = 'flex';
     window.location.href = 'user.html';
   } else {
     window.location.href = 'login.html';
   }
-};
-
-document.getElementById('logoutBtn').onclick = () => {
-  localStorage.removeItem('token');
-  localStorage.removeItem('user');
-  window.location.href = 'login.html';
 };
 
 document.getElementById("copyBtn").onclick = () => {
