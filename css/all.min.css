@@ -193,3 +193,15 @@ body.afternoon .source-inline {
 .ca-btn.nav-btn svg { width: 20px; height: 20px; }
 
 .ca-btn.icon-btn { min-width: 44px; padding: 8px; }
+
+/* 强制白天模式content-actions显示 */
+body.morning .content-actions,
+body.afternoon .content-actions {
+  display: flex !important;
+  visibility: visible !important;
+}
+body.morning .content-actions *,
+body.afternoon .content-actions * {
+  display: flex !important;
+  visibility: visible !important;
+}
