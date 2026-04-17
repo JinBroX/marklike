@@ -30,43 +30,6 @@ body.night { background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%); colo
   transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
 }
 
-/* 顶部导航箭头 */
-.nav-arrows {
-  position: fixed;
-  bottom: 110px;
-  left: 50%;
-  transform: translateX(-50%);
-  display: flex;
-  gap: 80px;
-  z-index: 50;
-}
-.nav-arrow {
-  width: 44px;
-  height: 44px;
-  border-radius: 50%;
-  border: none;
-  background: rgba(255,255,255,0.12);
-  color: rgba(255,255,255,0.5);
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.2s;
-}
-body.morning .nav-arrow,
-body.afternoon .nav-arrow {
-  background: rgba(42,37,32,0.1);
-  color: rgba(42,37,32,0.4);
-}
-.nav-arrow:active {
-  transform: scale(0.9);
-  background: rgba(201,169,110,0.3);
-}
-.nav-arrow svg {
-  width: 24px;
-  height: 24px;
-}
-
 .header {
   position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
   padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
@@ -163,17 +126,6 @@ body.afternoon .action-btn { color: rgba(0,0,0,0.7); }
     <div class="loading">加载中...</div>
   </div>
 
-  <!-- 导航箭头 -->
-  <div class="nav-arrows">
-    <button class="nav-arrow" onclick="goToSlice(-1)" title="上一条">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
-    </button>
-    <button class="nav-arrow" onclick="goToSlice(1)" title="下一条">
-      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-    </button>
-  </div>
-
-
 </div>
 
 <script>
@@ -247,6 +199,9 @@ function renderCurrent() {
     <div class="main-text">${displayText}<span class="source-inline">—— ${s.source || '佚名'}</span></div>
     <div class="content-divider"></div>
     <div class="content-actions">
+      <button class="ca-btn nav-btn" onclick="goToSlice(-1)" title="上一条">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+      </button>
       <button class="ca-btn" onclick="copyText()" title="复制">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
         <span>复制</span>
@@ -259,9 +214,8 @@ function renderCurrent() {
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
         <span>分享</span>
       </button>
-      <button class="ca-btn" onclick="refreshContent()" title="刷新">
-        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
-        <span>刷新</span>
+      <button class="ca-btn nav-btn" onclick="goToSlice(1)" title="下一条">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
     </div>
   `;
@@ -372,13 +326,6 @@ function shareContent() {
     btn.classList.add('active');
     setTimeout(() => btn.classList.remove('active'), 1000);
   }
-}
-
-function refreshContent() {
-  const btn = document.querySelector('.ca-btn[onclick="refreshContent()"]');
-  btn.classList.add('active');
-  loadSlices();
-  setTimeout(() => btn.classList.remove('active'), 500);
 }
 
 loadFavorites().then(() => loadSlices());
