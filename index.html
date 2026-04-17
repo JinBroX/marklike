@@ -236,14 +236,22 @@ function goToSlice(direction) {
     else currentIndex--;
     
     if (currentIndex >= slices.length) {
-      if (currentPage < totalPages) { currentPage++; loadSlices(); }
+      if (currentPage < totalPages) { 
+        currentPage++; 
+        loadSlices(); 
+        return;
+      }
       else { currentIndex = slices.length - 1; }
     } else if (currentIndex < 0) {
-      if (currentPage > 1) { currentPage--; loadSlices(); }
+      if (currentPage > 1) { 
+        currentPage--; 
+        loadSlices(); 
+        return;
+      }
       else { currentIndex = 0; }
-    } else {
-      renderCurrent();
     }
+    
+    renderCurrent();
     
     content.style.transform = direction > 0 ? 'translateY(20%)' : 'translateY(-20%)';
     setTimeout(() => {

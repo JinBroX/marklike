@@ -188,3 +188,6 @@ body.morning .source-inline,
 body.afternoon .source-inline {
   color: rgba(42,37,32,0.5);
 }
+
+.ca-btn.nav-btn { min-width: 60px; padding: 8px 12px; }
+.ca-btn.nav-btn svg { width: 20px; height: 20px; }
