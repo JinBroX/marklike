@@ -175,3 +175,16 @@ body.afternoon .source-emdash {
 }
 .content-actions { touch-action: pan-y; }
 .ca-btn { touch-action: manipulation; }
+
+
+/* 出处内联在正文末尾 */
+.source-inline {
+  display: block;
+  font-size: 12px;
+  color: rgba(255,255,255,0.4);
+  margin-top: 16px;
+}
+body.morning .source-inline,
+body.afternoon .source-inline {
+  color: rgba(42,37,32,0.5);
+}
