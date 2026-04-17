@@ -277,7 +277,7 @@ function toggleContentFav() {
   if (!currentSliceId) return;
   const token = localStorage.getItem("token");
   if (!token) { alert("请先登录"); return; }
-  const btn = document.getElementById('contentFavBtn');
+  const btn = document.getElementById('favBtn');
   const isActive = btn.classList.contains('active');
   fetch(API + "/favorites", {
     method: isActive ? "DELETE" : "POST",
@@ -288,10 +288,8 @@ function toggleContentFav() {
       btn.classList.toggle('active');
       if (btn.classList.contains('active')) {
         favoritedIds.add(currentSliceId);
-        btn.querySelector('span').textContent = '已收藏';
       } else {
         favoritedIds.delete(currentSliceId);
-        btn.querySelector('span').textContent = '收藏';
       }
     }
   });
