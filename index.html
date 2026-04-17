@@ -197,7 +197,7 @@ function renderCurrent() {
   
   const isFav = favoritedIds.has(s.id);
   document.getElementById("content").innerHTML = `
-    <div class="main-text">${displayText}</div>
+    <div class="main-text">${displayText}<span class="source-inline">—— ${s.source || '佚名'}</span></div>
     <div class="content-divider"></div>
     <div class="content-actions">
       <button class="ca-btn" onclick="copyText()" title="复制">
@@ -217,7 +217,6 @@ function renderCurrent() {
         <span>刷新</span>
       </button>
     </div>
-    <div class="source-emdash">—— ${s.source || '佚名'}</div>
   `;
   
   document.getElementById("content").scrollTop = 0;
