@@ -6,7 +6,7 @@
   <title>注册 - Marklike</title>
   <style>
     * { margin: 0; padding: 0; box-sizing: border-box; }
-    
+
     body {
       font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', sans-serif;
       min-height: 100vh;
@@ -16,12 +16,12 @@
       padding: 20px;
       transition: background 0.5s ease, color 0.5s ease;
     }
-    
+
     body.morning { background: linear-gradient(135deg, #f5f0e8 0%, #fff8f0 100%); color: #2a2520; }
     body.afternoon { background: linear-gradient(135deg, #fff8f0 0%, #fff5e6 100%); color: #2a2520; }
     body.evening { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #e8d5c4; }
     body.night { background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%); color: #c4b8a8; }
-    
+
     .auth-container {
       width: 100%;
       max-width: 400px;
@@ -30,19 +30,19 @@
       background: inherit;
       backdrop-filter: blur(10px);
     }
-    
+
     body.evening .auth-container,
     body.night .auth-container {
       background: rgba(255,255,255,0.05);
       border: 1px solid rgba(255,255,255,0.1);
     }
-    
+
     body.morning .auth-container,
     body.afternoon .auth-container {
       background: rgba(255,255,255,0.8);
       box-shadow: 0 4px 24px rgba(0,0,0,0.08);
     }
-    
+
     .logo {
       text-align: center;
       margin-bottom: 32px;
@@ -52,35 +52,39 @@
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 0;
     }
+    .logo-mark { color: #2a2520; }
     .logo-arrow { color: #c9a96e; }
-    
+    .logo-like { color: #c9a96e; }
+    body.evening .logo-mark,
+    body.night .logo-mark { color: #ffffff; }
+
     h1 {
       text-align: center;
       font-size: 24px;
       margin-bottom: 8px;
       font-weight: 600;
     }
-    
+
     .subtitle {
       text-align: center;
       color: #888;
       margin-bottom: 32px;
       font-size: 14px;
     }
-    
+
     .form-group {
       margin-bottom: 20px;
     }
-    
+
     label {
       display: block;
       margin-bottom: 8px;
       font-size: 14px;
       font-weight: 500;
     }
-    
+
     input {
       width: 100%;
       padding: 14px 16px;
@@ -90,20 +94,20 @@
       transition: all 0.3s;
       background: inherit;
     }
-    
+
     body.evening input,
     body.night input {
       background: rgba(255,255,255,0.08);
       border-color: rgba(255,255,255,0.15);
       color: inherit;
     }
-    
+
     input:focus {
       outline: none;
       border-color: #c9a96e;
       box-shadow: 0 0 0 3px rgba(201,169,110,0.15);
     }
-    
+
     .btn {
       width: 100%;
       padding: 14px;
@@ -115,43 +119,43 @@
       transition: all 0.3s;
       margin-top: 8px;
     }
-    
+
     .btn-primary {
       background: linear-gradient(135deg, #c9a96e 0%, #b8956a 100%);
       color: #fff;
     }
-    
+
     .btn-primary:hover {
       transform: translateY(-2px);
       box-shadow: 0 4px 16px rgba(201,169,110,0.35);
     }
-    
+
     .btn-secondary {
       background: transparent;
       border: 1px solid #c9a96e;
       color: #c9a96e;
       margin-top: 12px;
     }
-    
+
     .btn-secondary:hover {
       background: rgba(201,169,110,0.1);
     }
-    
+
     .links {
       text-align: center;
       margin-top: 24px;
       font-size: 14px;
     }
-    
+
     .links a {
       color: #c9a96e;
       text-decoration: none;
     }
-    
+
     .links a:hover {
       text-decoration: underline;
     }
-    
+
     .error {
       color: #e74c3c;
       font-size: 14px;
@@ -159,9 +163,9 @@
       text-align: center;
       display: none;
     }
-    
+
     .error.show { display: block; }
-    
+
     .success {
       color: #27ae60;
       font-size: 14px;
@@ -169,9 +173,9 @@
       text-align: center;
       display: none;
     }
-    
+
     .success.show { display: block; }
-    
+
     .back-home {
       position: absolute;
       top: 20px;
@@ -185,116 +189,134 @@
       font-size: 14px;
       transition: all 0.3s;
     }
-    
+
     body.morning .back-home,
     body.afternoon .back-home {
       background: rgba(0,0,0,0.05);
       border-color: rgba(0,0,0,0.1);
     }
-    
+
     .back-home:hover {
       background: rgba(201,169,110,0.2);
     }
-    
+
     .agreement {
-      font-size: 12px;
-      color: #888;
       text-align: center;
+      color: #888;
+      font-size: 12px;
       margin-top: 16px;
+    }
+
+    body.evening .agreement,
+    body.night .agreement {
+      color: rgba(255,255,255,0.5);
+    }
+
+    .info-text {
+      text-align: center;
+      color: #888;
+      font-size: 13px;
+      margin-bottom: 24px;
+    }
+
+    body.evening .info-text,
+    body.night .info-text {
+      color: rgba(255,255,255,0.6);
     }
   </style>
 </head>
-<body class="morning">
-  <a href="index.html" class="back-home">← 返回首页</a>
-  
+<body>
   <div class="auth-container">
+    <a href="login.html" class="back-home">返回登录</a>
+
     <div class="logo">
-      <span class="logo-arrow">></span>
-      <span>mark</span>
-      <span style="color: #c9a96e">like</span>
+      <span class="logo-mark">mark</span><span class="logo-arrow"></span><span class="logo-like">like</span>
     </div>
-    
+
     <h1>注册</h1>
     <p class="subtitle">开启您的古籍探索之旅</p>
-    
+
     <form id="registerForm">
-      <div class="form-group">
-        <label for="username">用户名</label>
-        <input type="text" id="username" placeholder="请输入用户名（2-20字符）" required minlength="2" maxlength="20">
-      </div>
-      
       <div class="form-group">
         <label for="email">邮箱</label>
         <input type="email" id="email" placeholder="请输入邮箱" required>
       </div>
-      
+
       <div class="form-group">
         <label for="password">密码</label>
         <input type="password" id="password" placeholder="请输入密码（至少6位）" required minlength="6">
       </div>
-      
+
       <div class="form-group">
         <label for="confirmPassword">确认密码</label>
         <input type="password" id="confirmPassword" placeholder="请再次输入密码" required>
       </div>
-      
+
       <p id="errorMsg" class="error"></p>
       <p id="successMsg" class="success"></p>
-      
+
       <button type="submit" class="btn btn-primary">注册</button>
-      
+
       <p class="agreement">注册即表示同意我们的服务条款</p>
     </form>
-    
+
     <div class="links">
       已有账号？<a href="login.html">立即登录</a>
     </div>
   </div>
 
+
   <script>
-    const API = 'http://43.128.101.103:3011/api';
-    
+    const API = '/api';
+
     // Apply theme
     const hour = new Date().getHours();
     if (hour >= 6 && hour < 12) document.body.className = 'morning';
     else if (hour >= 12 && hour < 18) document.body.className = 'afternoon';
     else if (hour >= 18 && hour < 22) document.body.className = 'evening';
     else document.body.className = 'night';
-    
+
     document.getElementById('registerForm').onsubmit = async (e) => {
       e.preventDefault();
-      const username = document.getElementById('username').value.trim();
       const email = document.getElementById('email').value.trim();
       const password = document.getElementById('password').value;
       const confirmPassword = document.getElementById('confirmPassword').value;
       const errorMsg = document.getElementById('errorMsg');
       const successMsg = document.getElementById('successMsg');
-      
+
       errorMsg.classList.remove('show');
       successMsg.classList.remove('show');
-      
+
       // Validation
       if (password !== confirmPassword) {
         errorMsg.textContent = '两次输入的密码不一致';
         errorMsg.classList.add('show');
         return;
       }
-      
+
       if (password.length < 6) {
         errorMsg.textContent = '密码至少需要6位';
         errorMsg.classList.add('show');
         return;
       }
-      
+
+      // 验证邮箱格式
+      const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+      if (!emailRegex.test(email)) {
+        errorMsg.textContent = '请输入有效的邮箱地址';
+        errorMsg.classList.add('show');
+        return;
+      }
+
       try {
         const res = await fetch(API + '/register', {
           method: 'POST',
           headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ username, email, password })
+          body: JSON.stringify({ email, password })
         });
-        
+
         const data = await res.json();
-        
+
         if (res.ok) {
           successMsg.textContent = '注册成功！正在跳转登录页面...';
           successMsg.classList.add('show');
