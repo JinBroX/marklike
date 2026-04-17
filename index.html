@@ -162,6 +162,30 @@ let slices = [];
 let lang = 'zh';
 let currentSliceId = null;
 let isAnimating = false;
+let favoritedIds = new Set();
+
+async function loadFavorites() {
+  const token = localStorage.getItem("token");
+  if (!token) { favoritedIds.clear(); return; }
+  try {
+    const res = await fetch(API + "/favorites", {
+      headers: { "Authorization": token }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      favoritedIds = new Set((data.favorites || []).map(f => f.slice_id));
+    }
+  } catch(e) {}
+}
+
+function updateBookmarkState() {
+  const btn = document.getElementById("bookmarkBtn");
+  if (favoritedIds.has(currentSliceId)) {
+    btn.classList.add("active");
+  } else {
+    btn.classList.remove("active");
+  }
+}
 
 async function loadSlices() {
   try {
@@ -190,6 +214,7 @@ function renderCurrent() {
   `;
   
   document.getElementById("content").scrollTop = 0;
+  updateBookmarkState();
 }
 
 function goToSlice(direction) {
@@ -261,6 +286,11 @@ document.getElementById("bookmarkBtn").onclick = async () => {
     });
     if (res.ok) {
       btn.classList.toggle("active");
+      if (isActive) {
+        favoritedIds.delete(currentSliceId);
+      } else {
+        favoritedIds.add(currentSliceId);
+      }
     } else {
       alert("收藏失败，请先登录");
     }
@@ -302,7 +332,7 @@ document.addEventListener("keydown", (e) => {
   if (e.key === 'ArrowUp') goToSlice(-1);
 });
 
-loadSlices();
+loadFavorites().then(() => loadSlices());
 </script>
 </body>
 </html>
