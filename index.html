@@ -4,7 +4,8 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>mark>like</title>
-<link rel="stylesheet" href="/css/all.min.css">
+<link rel="stylesheet" href="/css/all.min.css?v=2026041701">
+<link rel="stylesheet" href="/css/fonts.css?v=2026041701">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
 html, body {
@@ -32,12 +33,18 @@ body.night { background: #0d0d0d; color: #fff; }
 .header {
   position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
   padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
-  background: rgba(0,0,0,0.5);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: transparent;
+  background: linear-gradient(to bottom, rgba(254,249,243,0.8) 0%, transparent 100%);
+}
+body.evening .header,
+body.night .header {
+  background: linear-gradient(to bottom, rgba(13,13,13,0.8) 0%, transparent 100%);
 }
 .logo { font-size: 20px; font-weight: 700; letter-spacing: -1px; display: flex; align-items: center; gap: 4px; }
-.logo-arrow { color: #c9a96e; }
+.logo-arrow { color: #c9a96e !important; }
+.logo span { color: inherit; }
+body.morning .logo,
+body.afternoon .logo { color: #2a2520; }
 .header-actions { display: flex; gap: 12px; }
 .icon-btn {
   width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer;
@@ -47,6 +54,8 @@ body.night { background: #0d0d0d; color: #fff; }
 body.morning .icon-btn,
 body.afternoon .icon-btn { background: rgba(0,0,0,0.08); color: #333; }
 .icon-btn:hover { background: rgba(255,255,255,0.2); }
+body.morning .icon-btn:hover,
+body.afternoon .icon-btn:hover { background: rgba(0,0,0,0.1); }
 .icon-btn svg { width: 20px; height: 20px; stroke-width: 1.5; }
 
 .lang-btn {
@@ -77,17 +86,19 @@ body.afternoon .source { color: rgba(0,0,0,0.4); border-color: rgba(0,0,0,0.1); 
 .actions {
   position: fixed; bottom: 0; left: 0; width: 100%; z-index: 100;
   padding: 16px 20px; display: flex; justify-content: center; align-items: center; gap: 16px;
-  background: rgba(0,0,0,0.6);
-  backdrop-filter: blur(10px);
-  -webkit-backdrop-filter: blur(10px);
+  background: linear-gradient(to top, rgba(254,249,243,0.8) 0%, transparent 100%);
+}
+body.evening .actions,
+body.night .actions {
+  background: linear-gradient(to top, rgba(13,13,13,0.8) 0%, transparent 100%);
 }
 .action-btn {
   display: flex; align-items: center; justify-content: center;
   background: none; border: none; cursor: pointer;
-  color: rgba(255,255,255,0.7); font-size: 18px; transition: all 0.2s;
+  color: rgba(255,255,255,0.8); font-size: 18px; transition: all 0.2s;
 }
 body.morning .action-btn,
-body.afternoon .action-btn { color: rgba(255,255,255,0.7); }
+body.afternoon .action-btn { color: rgba(0,0,0,0.7); }
 .action-btn:hover { color: #4da6ff; transform: scale(1.1); }
 .action-btn.active { color: #4da6ff; }
 
@@ -112,16 +123,16 @@ body.afternoon .action-btn { color: rgba(255,255,255,0.7); }
 
   <div class="actions">
     <button class="action-btn" id="copyBtn" title="复制">
-      <i class="fas fa-copy"></i>
+      <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2" ry="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
     </button>
     <button class="action-btn" id="bookmarkBtn" title="书签">
-      <i class="fas fa-bookmark"></i>
+      <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
     </button>
     <button class="action-btn" id="shareBtn" title="分享">
-      <i class="fas fa-share"></i>
+      <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
     </button>
     <button class="action-btn" id="refreshBtn" title="刷新">
-      <i class="fas fa-sync"></i>
+      <svg style="width:18px;height:18px" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polyline points="23 4 23 10 17 10"/><polyline points="1 20 1 14 7 14"/><path d="M3.51 9a9 9 0 0 1 14.85-3.36L23 10M1 14l4.64 4.36A9 9 0 0 0 20.49 15"/></svg>
     </button>
   </div>
 </div>
@@ -227,8 +238,26 @@ document.getElementById("copyBtn").onclick = () => {
   });
 };
 
-document.getElementById("bookmarkBtn").onclick = () => {
-  document.getElementById("bookmarkBtn").classList.toggle("active");
+document.getElementById("bookmarkBtn").onclick = async () => {
+  const btn = document.getElementById("bookmarkBtn");
+  if (!currentSliceId) return;
+  
+  const isActive = btn.classList.contains("active");
+  try {
+    const res = await fetch(API + "/favorites", {
+      method: isActive ? "DELETE" : "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ slice_id: currentSliceId })
+    });
+    if (res.ok) {
+      btn.classList.toggle("active");
+    } else {
+      alert("收藏失败，请先登录");
+    }
+  } catch(e) {
+    // 网络错误也切换状态，允许离线使用
+    btn.classList.toggle("active");
+  }
 };
 
 document.getElementById("shareBtn").onclick = () => {
