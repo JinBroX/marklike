@@ -227,44 +227,21 @@ function renderCurrent() {
   document.getElementById("content").scrollTop = 0;
 }
 
-function goToSlice(direction) {
-  console.log('goToSlice called:', direction, 'currentIndex:', currentIndex, 'slices:', slices.length);
-  if (isAnimating) { console.log('isAnimating blocked'); return; }
-  isAnimating = true;
-  
-  const content = document.getElementById("content");
-  content.style.transform = direction > 0 ? 'translateY(-20%)' : 'translateY(20%)';
-  content.style.opacity = '0.5';
-  
-  setTimeout(() => {
-    if (direction > 0) currentIndex++;
-    else currentIndex--;
-    
-    if (currentIndex >= slices.length) {
-      if (currentPage < totalPages) { 
-        currentPage++; 
-        loadSlices(); 
-        return;
-      }
-      else { currentIndex = slices.length - 1; }
-    } else if (currentIndex < 0) {
-      if (currentPage > 1) { 
-        currentPage--; 
-        loadSlices(); 
-        return;
-      }
-      else { currentIndex = 0; }
-    }
-    
+// 简化的goToSlice - 去掉动画，直接加载新内容
+async function goToSlice(direction) {
+  console.log('goToSlice:', direction);
+  document.getElementById("content").innerHTML = '<div class="loading">加载中...</div>';
+  try {
+    const res = await fetch(API + "/random");
+    const data = await res.json();
+    slices = data.slice ? [data.slice] : [];
+    currentIndex = 0;
+    totalPages = 1;
+    currentPage = 1;
     renderCurrent();
-    
-    content.style.transform = direction > 0 ? 'translateY(20%)' : 'translateY(-20%)';
-    setTimeout(() => {
-      content.style.transform = 'translateY(0)';
-      content.style.opacity = '1';
-      isAnimating = false;
-    }, 50);
-  }, 200);
+  } catch (err) {
+    document.getElementById("content").innerHTML = '<div class="loading">加载失败</div>';
+  }
 }
 
 document.getElementById("langBtn").onclick = () => {
