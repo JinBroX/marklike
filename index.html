@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>marklike</title>
-<link rel="stylesheet" href="/css/all.min.css?v=2026041803">
+<link rel="stylesheet" href="/css/all.min.css?v=2026041804">
 <link rel="stylesheet" href="/css/fonts.css?v=2026041701">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -331,6 +331,30 @@ document.addEventListener("keydown", (e) => {
   if (e.key === 'ArrowDown' || e.key === ' ') goToSlice(1);
   if (e.key === 'ArrowUp') goToSlice(-1);
 });
+
+function toggleContentFav() {
+  if (!currentSliceId) return;
+  const token = localStorage.getItem("token");
+  if (!token) { alert("请先登录"); return; }
+  const btn = document.querySelector('.content-fav-btn');
+  const isActive = btn.classList.contains('active');
+  fetch(API + "/favorites", {
+    method: isActive ? "DELETE" : "POST",
+    headers: { "Content-Type": "application/json", "Authorization": token },
+    body: JSON.stringify({ slice_id: currentSliceId })
+  }).then(res => {
+    if (res.ok) {
+      btn.classList.toggle('active');
+      if (btn.classList.contains('active')) {
+        favoritedIds.add(currentSliceId);
+        btn.querySelector('span').textContent = '已收藏';
+      } else {
+        favoritedIds.delete(currentSliceId);
+        btn.querySelector('span').textContent = '收藏';
+      }
+    }
+  });
+}
 
 loadFavorites().then(() => loadSlices());
 </script>
