@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>marklike</title>
-<link rel="stylesheet" href="/css/all.min.css?v=2026041823">
+<link rel="stylesheet" href="/css/all.min.css?v=2026041824">
 <link rel="stylesheet" href="/css/fonts.css?v=2026041701">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -49,6 +49,28 @@ body.afternoon .logo-mark { color: #000; }
 body.morning .logo,
 body.afternoon .logo { color: #000; }
 .header-actions { display: flex; gap: 12px; }
+
+/* 底部按钮：圆形透明 */
+.icon-btn {
+  width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; color: rgba(255,255,255,0.7); transition: all 0.2s;
+}
+body.morning .icon-btn,
+body.afternoon .icon-btn { background: transparent; color: rgba(42,37,32,0.7); }
+.icon-btn:hover { opacity: 0.7; }
+
+/* header用户按钮：圆角边框样式 */
+.user-btn {
+  width: auto; height: auto; padding: 6px 14px; border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.25); background: transparent;
+  color: #fff; font-size: 12px; font-weight: 500; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all 0.2s;
+}
+body.morning .user-btn,
+body.afternoon .user-btn { border-color: rgba(0,0,0,0.2); color: #333; }
+
 .logout-btn { display: none; }
 
 .lang-btn {
