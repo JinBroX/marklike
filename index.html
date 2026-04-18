@@ -124,6 +124,7 @@ body.afternoon .action-btn { color: rgba(0,0,0,0.7); }
 
 .loading { text-align: center; padding: 60px; color: rgba(255,255,255,0.5); }
 </style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
 <body class="night">
 <div class="app">
@@ -333,7 +334,8 @@ function shareContent() {
     '<div style="text-align:center;color:#999;font-size:12px;padding:10px;">分享到</div>' +
     '<div style="display:flex;justify-content:space-around;">' +
     '<div id="shareTextBtn" style="text-align:center;cursor:pointer;padding:12px 20px;"><div style="font-size:24px;">📋</div><div style="font-size:12px;color:#333;margin-top:6px;">复制文案</div></div>' +
-    '<div id="shareLinkBtn" style="text-align:center;cursor:pointer;padding:12px 20px;"><div style="font-size:24px;">🔗</div><div style="font-size:12px;color:#333;margin-top:6px;">复制链接</div></div>' +
+    '<div id="shareImageBtn" style="text-align:center;cursor:pointer;padding:12px 20px;"><div style="font-size:24px;">🖼️</div><div style="font-size:12px;color:#333;margin-top:6px;">分享图</div></div>
+    <div id="shareLinkBtn" style="text-align:center;cursor:pointer;padding:12px 20px;"><div style="font-size:24px;">🔗</div><div style="font-size:12px;color:#333;margin-top:6px;">复制链接</div></div>' +
     '</div></div>';
   document.body.appendChild(menu);
 
@@ -357,6 +359,106 @@ function shareContent() {
     btn.style.background = 'rgba(255,255,255,0.2)';
     setTimeout(() => btn.style.background = '', 1000);
   };
+
+  // 生成分享图
+  document.getElementById('shareImageBtn').onclick = () => {
+    document.body.removeChild(menu);
+    generateShareImage();
+  };
+}
+
+// 生成分享图（长图+二维码）
+async function generateShareImage() {
+  const s = slices[currentIndex];
+  if (!s) return;
+  const shareUrl = window.location.href;
+  const isDark = !document.body.classList.contains('morning') && !document.body.classList.contains('afternoon');
+  const bgColor = isDark ? '#1a1a2e' : '#f5f0e8';
+  const textColor = isDark ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.85)';
+  const subColor = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)';
+
+  let displayText = s.modern || s.content || '';
+  if (lang === 'en' && s.english) displayText = s.english;
+  const source = s.source || '佚名';
+
+  // 计算文字换行
+  const canvas = document.createElement('canvas');
+  const ctx = canvas.getContext('2d');
+  ctx.font = '18px -apple-system, BlinkMacSystemFont, sans-serif';
+  const maxWidth = 520;
+  const words = displayText.split('');
+  let lines = [];
+  let line = '';
+  for (let char of words) {
+    const testLine = line + char;
+    if (ctx.measureText(testLine).width > maxWidth && line) {
+      lines.push(line);
+      line = char;
+    } else {
+      line = testLine;
+    }
+  }
+  if (line) lines.push(line);
+  const textHeight = lines.length * 28;
+
+  // 画布尺寸
+  const qrSize = 100;
+  const padding = 40;
+  const canvasHeight = padding + textHeight + 30 + 20 + qrSize + 80;
+  canvas.width = 600;
+  canvas.height = canvasHeight;
+
+  // 画背景
+  ctx.fillStyle = bgColor;
+  ctx.fillRect(0, 0, 600, canvasHeight);
+
+  // 画文字
+  ctx.fillStyle = textColor;
+  ctx.font = '18px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.textAlign = 'center';
+  let y = padding + 18;
+  for (let l of lines) {
+    ctx.fillText(l, 300, y);
+    y += 28;
+  }
+
+  // 画出处
+  ctx.fillStyle = subColor;
+  ctx.font = '14px -apple-system, BlinkMacSystemFont, sans-serif';
+  ctx.fillText('—— ' + source, 300, y + 20);
+
+  // 生成二维码
+  const qrDiv = document.createElement('div');
+  qrDiv.style.cssText = 'position:fixed;left:-9999px;top:0;width:100px;height:100px;';
+  document.body.appendChild(qrDiv);
+  new QRCode(qrDiv, { text: shareUrl, width: 100, height: 100 });
+
+  setTimeout(() => {
+    const qrImg = qrDiv.querySelector('img') || qrDiv.querySelector('canvas');
+    if (qrImg) {
+      const qrY = y + 50;
+      ctx.fillStyle = subColor;
+      ctx.font = '12px -apple-system, BlinkMacSystemFont, sans-serif';
+      ctx.fillText('mark>like', 300, qrY + 15);
+      ctx.drawImage(qrImg, 250, qrY + 20, qrSize, qrSize);
+      ctx.fillText(shareUrl, 300, qrY + qrSize + 45);
+    }
+
+    document.body.removeChild(qrDiv);
+
+    canvas.toBlob((blob) => {
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement('a');
+      a.href = url;
+      a.download = 'marklike-share.png';
+      a.click();
+      URL.revokeObjectURL(url);
+
+      const btn = document.getElementById('shareBtn');
+      btn.style.background = 'rgba(255,255,255,0.2)';
+      setTimeout(() => btn.style.background = '', 1000);
+    }, 'image/png');
+  }, 300);
 }
 
 loadFavorites().then(() => loadSlices());
