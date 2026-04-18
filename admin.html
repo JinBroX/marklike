@@ -1,0 +1,686 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>marklike 管理后台</title>
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #0d0d0d;
+  color: #fff;
+  min-height: 100vh;
+  padding: 20px;
+}
+.header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 30px;
+  padding-bottom: 20px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+.header h1 { color: #c9a96e; font-size: 24px; }
+.header .back { color: #fff; text-decoration: none; padding: 8px 16px; border: 1px solid rgba(255,255,255,0.2); border-radius: 6px; }
+.header .back:hover { background: rgba(255,255,255,0.1); }
+
+.login-box {
+  max-width: 400px;
+  margin: 100px auto;
+  padding: 40px;
+  background: #1a1a2e;
+  border-radius: 12px;
+}
+.login-box h2 { color: #c9a96e; margin-bottom: 24px; text-align: center; }
+.login-box input {
+  width: 100%;
+  padding: 12px 16px;
+  margin-bottom: 16px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-size: 14px;
+}
+.login-box button {
+  width: 100%;
+  padding: 12px;
+  background: #c9a96e;
+  color: #000;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  font-weight: 600;
+  cursor: pointer;
+}
+.login-box button:hover { opacity: 0.9; }
+.login-box .error { color: #ff6b6b; margin-top: 12px; text-align: center; font-size: 13px; }
+
+.stats {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: 16px;
+  margin-bottom: 30px;
+}
+.stat-card {
+  background: #1a1a2e;
+  padding: 20px;
+  border-radius: 12px;
+  text-align: center;
+}
+.stat-card .num { font-size: 32px; font-weight: 700; color: #c9a96e; }
+.stat-card .label { font-size: 13px; color: rgba(255,255,255,0.5); margin-top: 4px; }
+
+.toolbar {
+  display: flex;
+  gap: 12px;
+  margin-bottom: 20px;
+  flex-wrap: wrap;
+}
+.toolbar input {
+  flex: 1;
+  min-width: 200px;
+  padding: 10px 16px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-size: 14px;
+}
+.toolbar button {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 8px;
+  font-size: 14px;
+  cursor: pointer;
+  transition: all 0.2s;
+}
+.btn-primary { background: #c9a96e; color: #000; }
+.btn-primary:hover { opacity: 0.9; }
+.btn-secondary { background: rgba(255,255,255,0.1); color: #fff; }
+.btn-secondary:hover { background: rgba(255,255,255,0.2); }
+
+.list { display: flex; flex-direction: column; gap: 12px; }
+.item {
+  background: #1a1a2e;
+  border-radius: 12px;
+  padding: 16px 20px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+.item-info { flex: 1; }
+.item-title { font-size: 15px; color: #c9a96e; margin-bottom: 6px; }
+.item-meta { font-size: 12px; color: rgba(255,255,255,0.4); }
+.item-preview { font-size: 13px; color: rgba(255,255,255,0.6); margin-top: 8px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; max-width: 600px; }
+.item-actions { display: flex; gap: 8px; }
+.item-actions button {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 6px;
+  font-size: 13px;
+  cursor: pointer;
+}
+.btn-edit { background: #4da6ff; color: #fff; }
+.btn-delete { background: #ff6b6b; color: #fff; }
+.btn-add { background: #4caf50; color: #fff; }
+
+.batch-bar {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+  padding: 12px 16px;
+  background: #fff3f3;
+  border-radius: 8px;
+  margin-bottom: 16px;
+  flex-wrap: wrap;
+}
+.batch-bar label { display: flex; align-items: center; gap: 6px; cursor: pointer; }
+.batch-bar #selectedCount { flex: 1; color: #666; font-size: 14px; }
+
+.item { display: flex; align-items: center; gap: 12px; }
+.item-checkbox { flex-shrink: 0; }
+.item-checkbox input { width: 18px; height: 18px; cursor: pointer; }
+
+.pagination {
+  display: flex;
+  justify-content: center;
+  gap: 8px;
+  margin-top: 24px;
+}
+.pagination button {
+  padding: 8px 14px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 6px;
+  background: transparent;
+  color: #fff;
+  cursor: pointer;
+}
+.pagination button.active { background: #c9a96e; color: #000; border-color: #c9a96e; }
+.pagination button:disabled { opacity: 0.4; cursor: not-allowed; }
+
+/* Modal */
+.modal { position: fixed; top: 0; left: 0; width: 100%; height: 100%; z-index: 1000; display: none; }
+.modal.show { display: flex; align-items: center; justify-content: center; }
+.modal-overlay { position: absolute; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.7); }
+.modal-content {
+  position: relative;
+  width: 90%;
+  max-width: 600px;
+  max-height: 85vh;
+  background: #1a1a2e;
+  border-radius: 12px;
+  padding: 24px;
+  overflow-y: auto;
+}
+.modal-content h3 { color: #c9a96e; margin-bottom: 20px; }
+.form-group { margin-bottom: 16px; }
+.form-group label { display: block; margin-bottom: 6px; font-size: 13px; color: rgba(255,255,255,0.7); }
+.form-group input, .form-group textarea, .form-group select {
+  width: 100%;
+  padding: 10px 12px;
+  border: 1px solid rgba(255,255,255,0.2);
+  border-radius: 8px;
+  background: rgba(255,255,255,0.1);
+  color: #fff;
+  font-size: 14px;
+}
+.form-group textarea { resize: vertical; min-height: 100px; }
+.modal-actions { display: flex; gap: 12px; justify-content: flex-end; margin-top: 24px; }
+.modal-actions button { padding: 10px 24px; border: none; border-radius: 8px; font-size: 14px; cursor: pointer; }
+.btn-cancel { background: rgba(255,255,255,0.1); color: #fff; }
+.btn-save { background: #c9a96e; color: #000; }
+
+.loading { text-align: center; padding: 60px; color: rgba(255,255,255,0.5); }
+.hidden { display: none !important; }
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+  body { padding: 12px; }
+  
+  .header {
+    flex-direction: column;
+    gap: 12px;
+    text-align: center;
+  }
+  .header h1 { font-size: 20px; }
+  .header .back { font-size: 13px; padding: 6px 12px; }
+  
+  .login-box { margin: 60px 0; padding: 24px; }
+  
+  .stats {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 12px;
+  }
+  .stat-card { padding: 16px; }
+  .stat-card .num { font-size: 24px; }
+  .stat-card .label { font-size: 11px; }
+  
+  .toolbar {
+    flex-direction: column;
+  }
+  .toolbar input { min-width: 100%; }
+  .toolbar button { width: 100%; }
+  
+  .item {
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 12px;
+    padding: 14px 16px;
+  }
+  .item-info { width: 100%; }
+  .item-preview { max-width: 100%; }
+  .item-actions {
+    width: 100%;
+    justify-content: flex-end;
+  }
+  .item-actions button {
+    padding: 6px 12px;
+    font-size: 12px;
+    flex: 1;
+  }
+  
+  .pagination { flex-wrap: wrap; }
+  
+  .modal-content {
+    padding: 16px;
+    max-height: 90vh;
+  }
+  .modal-content h3 { font-size: 18px; margin-bottom: 16px; }
+  .form-group { margin-bottom: 12px; }
+  .form-group label { font-size: 12px; }
+  .form-group input, .form-group textarea { font-size: 16px; /* 防止iOS缩放 */ padding: 12px; }
+  .form-group textarea { min-height: 80px; }
+  .modal-actions {
+    flex-direction: column-reverse;
+    gap: 8px;
+  }
+  .modal-actions button { width: 100%; padding: 12px; }
+}
+
+/* 超小屏幕 */
+@media (max-width: 400px) {
+  .stats { grid-template-columns: 1fr; }
+  .item-actions { flex-wrap: wrap; }
+  .item-actions button { flex: 1 1 45%; }
+}
+</style>
+</head>
+<body>
+<div id="app"></div>
+
+<script>
+const API = '/api';
+let adminUser = null;
+let currentPage = 1;
+let totalItems = 0;
+const limit = 20;
+
+// 自动登录 - 使用7057709账户
+(function autoLogin() {
+  adminUser = { username: '7057709', is_super: 1 };
+  render();
+  loadAllSlices();
+})();
+
+function render() {
+  const app = document.getElementById('app');
+  if (!adminUser) {
+    app.innerHTML = `
+      <div class="login-box">
+        <h2>管理员登录</h2>
+        <input type="text" id="username" placeholder="用户名">
+        <input type="password" id="password" placeholder="密码">
+        <button onclick="doLogin()">登录</button>
+        <div class="error hidden" id="loginError"></div>
+      </div>
+    `;
+  } else {
+    app.innerHTML = `
+      <div class="header">
+        <h1>marklike 管理后台</h1>
+        <div>
+          <span style="color:rgba(255,255,255,0.5);font-size:13px;margin-right:12px;">${adminUser.username}</span>
+          <button class="btn-secondary" onclick="location.href='index.html'">返回首页</button>
+          <button class="btn-secondary" onclick="doLogout()">退出</button>
+        </div>
+      </div>
+      
+      <div class="stats">
+        <div class="stat-card"><div class="num" id="statTotal">-</div><div class="label">总文章</div></div>
+      </div>
+      
+      <div class="toolbar">
+        <input type="text" id="searchInput" placeholder="搜索出处/内容..." onkeyup="if(event.key==='Enter')searchSlices()">
+        <button class="btn-primary" onclick="showAddModal()">+ 新增文章</button>
+        <button class="btn-secondary" onclick="searchSlices()">搜索</button>
+        <button class="btn-secondary" onclick="loadSlices()">刷新</button>
+      </div>
+      
+      <!-- 批量操作栏 -->
+      <div class="batch-bar" id="batchBar" style="display:none;">
+        <label><input type="checkbox" id="selectAll" onchange="toggleSelectAll()"> 全选</label>
+        <span id="selectedCount">已选 0 项</span>
+        <button class="btn-delete" onclick="batchDelete()">删除选中</button>
+        <button class="btn-secondary" onclick="clearSelection()">取消</button>
+      </div>
+      
+      <div class="list" id="listContainer">
+        <div class="loading">加载中...</div>
+      </div>
+      
+      <div class="pagination" id="pagination"></div>
+      
+      <!-- 编辑弹窗 -->
+      <div class="modal" id="editModal">
+        <div class="modal-overlay" onclick="closeModal()"></div>
+        <div class="modal-content">
+          <h3 id="modalTitle">编辑文章</h3>
+          <input type="hidden" id="editId">
+          <div class="form-group">
+            <label>出处/来源</label>
+            <input type="text" id="editSource" placeholder="如：《论语》">
+          </div>
+          <div class="form-group">
+            <label>原文</label>
+            <textarea id="editOriginal" placeholder="古文原文"></textarea>
+          </div>
+          <div class="form-group">
+            <label>白话翻译</label>
+            <textarea id="editModern" placeholder="白话翻译"></textarea>
+          </div>
+          <div class="form-group">
+            <label>英文翻译</label>
+            <textarea id="editEnglish" placeholder="英文翻译"></textarea>
+          </div>
+          <div class="modal-actions">
+            <button class="btn-cancel" onclick="closeModal()">取消</button>
+            <button class="btn-save" onclick="saveSlice()">保存</button>
+          </div>
+        </div>
+      </div>
+    `;
+    loadSlices();
+  }
+}
+
+async function doLogin() {
+  const username = document.getElementById('username').value;
+  const password = document.getElementById('password').value;
+  const error = document.getElementById('loginError');
+  
+  if (!username || !password) {
+    error.textContent = '请输入用户名和密码';
+    error.classList.remove('hidden');
+    return;
+  }
+  
+  try {
+    const res = await fetch(API + '/login', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ username, password })
+    });
+    const data = await res.json();
+    
+    if (data.user) {
+      adminUser = data.user;
+      localStorage.setItem('adminUser', JSON.stringify(adminUser));
+      render();
+    } else {
+      error.textContent = data.error || '登录失败';
+      error.classList.remove('hidden');
+    }
+  } catch (e) {
+    error.textContent = '网络错误';
+    error.classList.remove('hidden');
+  }
+}
+
+function doLogout() {
+  adminUser = null;
+  localStorage.removeItem('adminUser');
+  render();
+}
+
+async function loadSlices() {
+  const container = document.getElementById('listContainer');
+  container.innerHTML = '<div class="loading">加载中...</div>';
+  
+  try {
+    const res = await fetch(`${API}/premium?page=${currentPage}&limit=${limit}`);
+    const data = await res.json();
+    
+    totalItems = data.pagination.total;
+    document.getElementById('statTotal').textContent = totalItems;
+    
+    if (data.slices.length === 0) {
+      container.innerHTML = '<div class="loading">暂无数据</div>';
+    } else {
+      container.innerHTML = data.slices.map(s => `
+        <div class="item">
+          <div class="item-checkbox">
+            <input type="checkbox" value="${s.id}" onchange="updateBatchBar()">
+          </div>
+          <div class="item-info">
+            <div class="item-title">${s.source || '佚名'}</div>
+            <div class="item-meta">ID: ${s.id} | ${s.genre || '未分类'}</div>
+            <div class="item-preview">${(s.content || '').substring(0, 100)}...</div>
+          </div>
+          <div class="item-actions">
+            <button class="btn-edit" onclick="showEditModal(${s.id})">编辑</button>
+            <button class="btn-delete" onclick="deleteSlice(${s.id})">删除</button>
+          </div>
+        </div>
+      `).join('');
+      clearSelection();
+    }
+    
+    renderPagination();
+  } catch (e) {
+    container.innerHTML = '<div class="loading">加载失败</div>';
+  }
+}
+
+function renderPagination() {
+  const totalPages = Math.ceil(totalItems / limit);
+  const pagination = document.getElementById('pagination');
+  
+  if (totalPages <= 1) {
+    pagination.innerHTML = '';
+    return;
+  }
+  
+  let html = '';
+  html += `<button ${currentPage === 1 ? 'disabled' : ''} onclick="goPage(${currentPage - 1})">上一页</button>`;
+  
+  for (let i = 1; i <= totalPages; i++) {
+    if (i === 1 || i === totalPages || (i >= currentPage - 2 && i <= currentPage + 2)) {
+      html += `<button class="${i === currentPage ? 'active' : ''}" onclick="goPage(${i})">${i}</button>`;
+    } else if (i === currentPage - 3 || i === currentPage + 3) {
+      html += '<button disabled>...</button>';
+    }
+  }
+  
+  html += `<button ${currentPage === totalPages ? 'disabled' : ''} onclick="goPage(${currentPage + 1})">下一页</button>`;
+  
+  pagination.innerHTML = html;
+}
+
+function goPage(p) {
+  currentPage = p;
+  loadSlices();
+}
+
+async function searchSlices() {
+  const keyword = document.getElementById('searchInput').value.trim();
+  const container = document.getElementById('listContainer');
+  
+  if (!keyword) {
+    currentPage = 1;
+    loadSlices();
+    return;
+  }
+  
+  container.innerHTML = '<div class="loading">搜索中...</div>';
+  
+  try {
+    // 加载所有数据进行搜索（简单实现）
+    const res = await fetch(`${API}/premium?page=1&limit=1000`);
+    const data = await res.json();
+    
+    const filtered = data.slices.filter(s => 
+      (s.source && s.source.includes(keyword)) ||
+      (s.content && s.content.includes(keyword)) ||
+      (s.modern && s.modern.includes(keyword))
+    );
+    
+    if (filtered.length === 0) {
+      container.innerHTML = '<div class="loading">没有找到匹配的文章</div>';
+    } else {
+      container.innerHTML = filtered.map(s => `
+        <div class="item">
+          <div class="item-checkbox">
+            <input type="checkbox" value="${s.id}" onchange="updateBatchBar()">
+          </div>
+          <div class="item-info">
+            <div class="item-title">${s.source || '佚名'}</div>
+            <div class="item-meta">ID: ${s.id}</div>
+            <div class="item-preview">${(s.content || '').substring(0, 100)}...</div>
+          </div>
+          <div class="item-actions">
+            <button class="btn-edit" onclick="showEditModal(${s.id})">编辑</button>
+            <button class="btn-delete" onclick="deleteSlice(${s.id})">删除</button>
+          </div>
+        </div>
+      `).join('');
+      clearSelection();
+    }
+  } catch (e) {
+    container.innerHTML = '<div class="loading">搜索失败</div>';
+  }
+}
+
+async function showEditModal(id) {
+  const modal = document.getElementById('editModal');
+  document.getElementById('modalTitle').textContent = '编辑文章';
+  document.getElementById('editId').value = id;
+  
+  // 加载文章数据
+  try {
+    const res = await fetch(`${API}/premium/${id}`);
+    const data = await res.json();
+    if (data.slice) {
+      document.getElementById('editSource').value = data.slice.source || '';
+      document.getElementById('editOriginal').value = data.slice.original || data.slice.content || '';
+      document.getElementById('editModern').value = data.slice.modern || '';
+      document.getElementById('editEnglish').value = data.slice.english || '';
+    }
+  } catch (e) {}
+  
+  modal.classList.add('show');
+}
+
+function showAddModal() {
+  const modal = document.getElementById('editModal');
+  document.getElementById('modalTitle').textContent = '新增文章';
+  document.getElementById('editId').value = '';
+  document.getElementById('editSource').value = '';
+  document.getElementById('editOriginal').value = '';
+  document.getElementById('editModern').value = '';
+  document.getElementById('editEnglish').value = '';
+  modal.classList.add('show');
+}
+
+function closeModal() {
+  document.getElementById('editModal').classList.remove('show');
+}
+
+async function saveSlice() {
+  const id = document.getElementById('editId').value;
+  const source = document.getElementById('editSource').value;
+  const original = document.getElementById('editOriginal').value;
+  const modern = document.getElementById('editModern').value;
+  const english = document.getElementById('editEnglish').value;
+  
+  if (!original) {
+    alert('请填写原文');
+    return;
+  }
+  
+  const method = id ? 'PUT' : 'POST';
+  const url = id ? `${API}/premium/${id}` : `${API}/premium`;
+  
+  try {
+    const res = await fetch(url, {
+      method: method,
+      headers: { 'Content-Type': 'application/json', 'X-Username': adminUser.username },
+      body: JSON.stringify({ source, original, modern, english })
+    });
+    
+    if (res.ok) {
+      alert(id ? '修改成功' : '新增成功');
+      closeModal();
+      loadSlices();
+    } else {
+      const data = await res.json();
+      alert(data.error || '操作失败');
+    }
+  } catch (e) {
+    alert('操作失败');
+  }
+}
+
+async function deleteSlice(id) {
+  if (!confirm('确定要删除这篇文章吗？删除后无法恢复！')) return;
+  
+  try {
+    const res = await fetch(`${API}/premium/${id}`, {
+      method: 'DELETE',
+      headers: { 'X-Username': adminUser.username }
+    });
+    
+    if (res.ok) {
+      alert('删除成功');
+      loadSlices();
+    } else {
+      const data = await res.json();
+      alert(data.error || '删除失败');
+    }
+  } catch (e) {
+    alert('删除失败');
+  }
+}
+
+// 批量删除
+function getSelectedIds() {
+  const checkboxes = document.querySelectorAll('#listContainer input[type="checkbox"]:checked');
+  return Array.from(checkboxes).map(cb => parseInt(cb.value));
+}
+
+function updateBatchBar() {
+  const ids = getSelectedIds();
+  const count = ids.length;
+  const batchBar = document.getElementById('batchBar');
+  const countEl = document.getElementById('selectedCount');
+  const selectAll = document.getElementById('selectAll');
+  
+  if (count > 0) {
+    batchBar.style.display = 'flex';
+    countEl.textContent = `已选 ${count} 项`;
+    // 检查是否全选
+    const allCheckboxes = document.querySelectorAll('#listContainer input[type="checkbox"]');
+    selectAll.checked = count === allCheckboxes.length;
+  } else {
+    batchBar.style.display = 'none';
+  }
+}
+
+function toggleSelectAll() {
+  const selectAll = document.getElementById('selectAll');
+  const checkboxes = document.querySelectorAll('#listContainer input[type="checkbox"]');
+  checkboxes.forEach(cb => cb.checked = selectAll.checked);
+  updateBatchBar();
+}
+
+function clearSelection() {
+  document.querySelectorAll('#listContainer input[type="checkbox"]').forEach(cb => cb.checked = false);
+  document.getElementById('selectAll').checked = false;
+  document.getElementById('batchBar').style.display = 'none';
+}
+
+async function batchDelete() {
+  const ids = getSelectedIds();
+  if (ids.length === 0) return;
+  
+  if (!confirm(`确定要删除这 ${ids.length} 篇文章吗？删除后无法恢复！`)) return;
+  
+  let success = 0, fail = 0;
+  for (const id of ids) {
+    try {
+      const res = await fetch(`${API}/premium/${id}`, {
+        method: 'DELETE',
+        headers: { 'X-Username': adminUser.username }
+      });
+      if (res.ok) success++;
+      else fail++;
+    } catch (e) {
+      fail++;
+    }
+  }
+  
+  alert(`删除完成：成功 ${success} 篇，失败 ${fail} 篇`);
+  clearSelection();
+  loadSlices();
+}
+
+// 初始化
+const savedUser = localStorage.getItem('adminUser');
+if (savedUser) {
+  adminUser = JSON.parse(savedUser);
+}
+render();
+</script>
+</body>
+</html>

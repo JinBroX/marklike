@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+<title>marklike</title>
+<link rel="stylesheet" href="/css/all.min.css?v=2026041921">
+<link rel="stylesheet" href="/css/fonts.css?v=2026041701">
+<style>
+* { margin: 0; padding: 0; box-sizing: border-box; }
+html, body {
+  width: 100%; height: 100%; overflow: hidden;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  background: #0d0d0d; color: #fff;
+  transition: background 0.5s ease;
+}
+body.morning { background: linear-gradient(135deg, #f5f0e8 0%, #fff8f0 100%); color: #000; }
+body.afternoon { background: linear-gradient(135deg, #fff8f0 0%, #fff5e6 100%); color: #000; }
+body.evening { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; }
+body.night { background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%); color: #fff; }
+
+.app {
+  width: 100%; height: 100%; position: relative; overflow: hidden;
+}
+.content {
+  width: 100%; height: 100%; display: flex; flex-direction: column;
+  padding: 70px 28px 100px;
+  overflow-y: auto;
+  -webkit-overflow-scrolling: touch;
+  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+}
+
+.header {
+  position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
+  padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
+  background: transparent;
+  background: linear-gradient(to bottom, rgba(254,249,243,0.8) 0%, transparent 100%);
+}
+body.evening .header,
+body.night .header {
+  background: linear-gradient(to bottom, rgba(13,13,13,0.8) 0%, transparent 100%);
+}
+.logo { font-size: 20px; font-weight: 700; letter-spacing: -1px; display: inline; }
+.logo-arrow { color: #c9a96e !important; }
+.logo-mark { color: #fff; }
+.logo-like { color: #c9a96e; }
+body.morning .logo-mark,
+body.afternoon .logo-mark { color: #000; }
+body.morning .logo,
+body.afternoon .logo { color: #000; }
+.header-actions { display: flex; gap: 12px; }
+
+/* 底部按钮：圆形透明 */
+.icon-btn {
+  color: #fff;
+  width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer;
+  display: flex; align-items: center; justify-content: center;
+  background: transparent; transition: all 0.2s;
+}
+body.morning .icon-btn,
+body.afternoon .icon-btn { color: #333; }
+.icon-btn:hover { opacity: 0.7; }
+body.morning .icon-btn,
+body.afternoon .icon-btn {
+  color: #fff; background: transparent; color: rgba(42,37,32,0.7); }
+.icon-btn:hover { opacity: 0.7; }
+
+/* header用户按钮：圆角边框样式 */
+.user-btn {
+  width: auto; height: auto; padding: 6px 14px; border-radius: 18px;
+  border: 1px solid rgba(255,255,255,0.25); background: transparent;
+  color: #fff; font-size: 12px; font-weight: 500; cursor: pointer;
+  display: inline-flex; align-items: center; justify-content: center; gap: 6px;
+  transition: all 0.2s;
+}
+body.morning .user-btn,
+body.afternoon .user-btn { border-color: rgba(0,0,0,0.2); color: #333; }
+
+.logout-btn { display: none; }
+
+.lang-btn {
+  padding: 6px 14px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.25);
+  background: transparent; color: #fff; font-size: 12px; font-weight: 500; cursor: pointer;
+  transition: all 0.2s;
+}
+body.morning .lang-btn,
+body.afternoon .lang-btn { border-color: rgba(0,0,0,0.2); color: #333; }
+
+.main-text {
+  font-size: 18px; line-height: 2.2; text-align: left;
+  color: #f0f0f0; white-space: pre-wrap; word-break: break-word;
+}
+.main-text::before {
+  content: '› '; color: #c9a96e; font-weight: bold;
+}
+body.morning .main-text,
+body.afternoon .main-text { color: #3a3530; }
+
+.source {
+  text-align: left; font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 20px;
+  padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);
+}
+body.morning .source,
+body.afternoon .source { color: rgba(0,0,0,0.4); border-color: rgba(0,0,0,0.1); }
+
+.actions {
+  position: fixed; bottom: 0; left: 0; width: 100%; z-index: 100;
+  padding: 16px 20px; display: flex; justify-content: center; align-items: center; gap: 16px;
+  background: linear-gradient(to top, rgba(254,249,243,0.8) 0%, transparent 100%);
+}
+body.evening .actions,
+body.night .actions {
+  background: linear-gradient(to top, rgba(13,13,13,0.8) 0%, transparent 100%);
+}
+.action-btn {
+  display: flex; align-items: center; justify-content: center;
+  background: none; border: none; cursor: pointer;
+  color: rgba(255,255,255,0.8); font-size: 18px; transition: all 0.2s;
+}
+body.morning .action-btn,
+body.afternoon .action-btn { color: rgba(0,0,0,0.7); }
+.action-btn:hover { color: #4da6ff; transform: scale(1.1); }
+.action-btn.active { color: #4da6ff; }
+
+.loading { text-align: center; padding: 60px; color: rgba(255,255,255,0.5); }
+</style>
+<script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>loadFavorites().then(() => loadSlices());</script>
+</head>
+<body class="night">
+<div class="app">
+  <div class="header">
+    <div class="logo"><span class="logo-mark">mark</span><span class="logo-arrow"></span><span class="logo-like">like</span></div>
+    <div class="header-actions">
+      <button class="lang-btn" id="langBtn">EN</button>
+            <button class="icon-btn user-btn" id="userBtn">
+        <svg viewBox="0 0 24 24" width="20" height="20" fill="none" stroke="#000"><circle cx="12" cy="8" r="4"/><path d="M4 20c0-4 4-6 8-6s8 2 8 6"/></svg>
+      </button>
+    </div>
+  </div>
+
+  <div class="content" id="content">
+    <div class="loading">加载中...</div>
+  </div>
+
+</div>
+
+<script>
+function setTheme() {
+  const hour = new Date().getHours();
+  const body = document.body;
+  body.className = '';
+  if (hour >= 6 && hour < 12) body.classList.add('morning');
+  else if (hour >= 12 && hour < 17) body.classList.add('afternoon');
+  else if (hour >= 17 && hour < 20) body.classList.add('evening');
+  else body.classList.add('night');
+}
+setTheme();
+
+const API = "/api";
+let currentPage = 1;
+let totalPages = 1;
+let currentIndex = 0;
+let slices = [];
+let prevSlice = null; // 记录上一页内容
+let lang = 'zh';
+let currentSliceId = null;
+let isAnimating = false;
+let favoritedIds = new Set();
+
+async function loadFavorites() {
+  const token = localStorage.getItem("token");
+  if (!token) { favoritedIds.clear(); return; }
+  try {
+    const res = await fetch(API + "/favorites", {
+      headers: { "Authorization": token }
+    });
+    if (res.ok) {
+      const data = await res.json();
+      favoritedIds = new Set((data.favorites || []).map(f => f.slice_id));
+    }
+  } catch(e) {}
+}
+
+function updateBookmarkState() {
+  const btn = document.getElementById("bookmarkBtn");
+  if (favoritedIds.has(currentSliceId)) {
+    btn.classList.add("active");
+  } else {
+    btn.classList.remove("active");
+  }
+}
+
+async function loadSlices() {
+  try {
+    const res = await fetch(API + "/random");
+    const data = await res.json();
+    slices = data.slice ? [data.slice] : [];
+    totalPages = 1;
+    currentIndex = 0;
+    renderCurrent();
+  } catch (err) {
+    document.getElementById("content").innerHTML = '<div class="loading">加载失败</div>';
+  }
+}
+
+function renderCurrent() {
+  const s = slices[currentIndex];
+  if (!s) return;
+  
+  currentSliceId = s.id;
+  let displayText = s.modern || s.content || '';
+  if (lang === 'en' && s.english) displayText = s.english;
+  
+  const isFav = favoritedIds.has(s.id);
+  document.getElementById("content").innerHTML = `
+    <div class="main-text">${displayText}<span class="source-inline">—— ${s.source || '佚名'}</span></div>
+    <div class="content-divider"></div>
+    <div class="content-actions">
+      <button class="ca-btn nav-btn" id="prevBtn" title="上一条">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+      </button>
+      <button class="ca-btn icon-btn" id="copyBtn" title="复制">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
+      </button>
+      <button class="ca-btn icon-btn fav-btn${isFav ? ' active' : ''}" id="favBtn">
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+      </button>
+      <button class="ca-btn nav-btn" id="nextBtn" title="下一条">
+        <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+      </button>
+    </div>
+  `;
+  
+  // 绑定按钮事件
+  document.getElementById("prevBtn").addEventListener("click", () => goToSlice(-1));
+  document.getElementById("nextBtn").addEventListener("click", () => goToSlice(1));
+  document.getElementById("copyBtn").addEventListener("click", copyText);
+    document.getElementById("favBtn").addEventListener("click", toggleContentFav);
+  
+  document.getElementById("content").scrollTop = 0;
+}
+
+// 简化的goToSlice - 去掉动画，直接加载新内容
+async function goToSlice(direction) {
+  console.log('goToSlice:', direction);
+  document.getElementById("content").innerHTML = '<div class="loading">加载中...</div>';
+  try {
+    // 向上翻（-1）：如果有上一页记录，加载上一页
+    if (direction === -1 && prevSlice) {
+      slices = [prevSlice];
+      prevSlice = null; // 清除上一页记录
+      currentIndex = 0;
+      totalPages = 1;
+      currentPage = 1;
+      renderCurrent();
+      return;
+    }
+    
+    // 向下翻（1）或没有上一页记录：随机获取
+    const res = await fetch(API + "/random");
+    const data = await res.json();
+    // 保存当前内容作为上一页
+    if (slices.length > 0) {
+      prevSlice = { ...slices[currentIndex] };
+    }
+    slices = data.slice ? [data.slice] : [];
+    currentIndex = 0;
+    totalPages = 1;
+    currentPage = 1;
+    renderCurrent();
+  } catch (err) {
+    document.getElementById("content").innerHTML = '<div class="loading">加载失败</div>';
+  }
+}
+
+document.getElementById("langBtn").onclick = () => {
+  lang = lang === 'zh' ? 'en' : 'zh';
+  document.getElementById("langBtn").textContent = lang === 'zh' ? 'EN' : '中文';
+  renderCurrent();
+};
+
+document.getElementById("userBtn").onclick = () => {
+  const user = localStorage.getItem('user');
+  if (user) {
+    window.location.href = 'user.html';
+  } else {
+    window.location.href = 'login.html';
+  }
+};
+
+
+let touchStartY = 0;
+document.addEventListener("touchstart", (e) => { touchStartY = e.changedTouches[0].screenY; }, { passive: true });
+document.addEventListener("touchend", (e) => {
+  const diff = e.changedTouches[0].screenY - touchStartY;
+  if (diff < -80) goToSlice(1);
+  if (diff > 80) goToSlice(-1);
+}, { passive: true });
+
+document.addEventListener("keydown", (e) => {
+  if (e.key === 'ArrowDown' || e.key === ' ') goToSlice(1);
+  if (e.key === 'ArrowUp') goToSlice(-1);
+});
+
+function toggleContentFav() {
+  if (!currentSliceId) return;
+  const token = localStorage.getItem("token");
+  if (!token) { alert("请先登录"); return; }
+  const btn = document.getElementById('favBtn');
+  const isActive = btn.classList.contains('active');
+  fetch(API + "/favorites", {
+    method: isActive ? "DELETE" : "POST",
+    headers: { "Content-Type": "application/json", "Authorization": token },
+    body: JSON.stringify({ slice_id: currentSliceId })
+  }).then(res => {
+    if (res.ok) {
+      btn.classList.toggle('active');
+      if (btn.classList.contains('active')) {
+        favoritedIds.add(currentSliceId);
+      } else {
+        favoritedIds.delete(currentSliceId);
+      }
+    }
+  });
+}
+
+function copyText() {
+  const mainText = document.querySelector('.main-text')?.textContent || '';
+  const sourceText = document.querySelector('.source-text')?.textContent || '';
+  const url = window.location.href;
+  const fullDomain = url.replace('https://', '').replace('http://', '');
+  const domain = fullDomain.split('/').slice(0, 2).join('/').replace(/\/index\.html$/, '');
+  
+  const plainText = mainText + '\n\n' + sourceText + '\n' + domain;
+  const htmlText = mainText + '<br><br>' + sourceText + '<br><a href="' + url + '">' + domain + '</a>';
+  
+  if (navigator.clipboard && navigator.clipboard.write) {
+    const blobPlain = new Blob([plainText], { type: 'text/plain' });
+    const blobHtml = new Blob([htmlText], { type: 'text/html' });
+    const item = new ClipboardItem({ 'text/plain': blobPlain, 'text/html': blobHtml });
+    navigator.clipboard.write([item]).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.classList.add('active');
+      setTimeout(() => btn.classList.remove('active'), 1000);
+    }).catch(() => {
+      navigator.clipboard.writeText(plainText);
+      const btn = document.getElementById('copyBtn');
+      btn.classList.add('active');
+      setTimeout(() => btn.classList.remove('active'), 1000);
+    });
+  } else {
+    navigator.clipboard.writeText(plainText);
+    const btn = document.getElementById('copyBtn');
+    btn.classList.add('active');
+    setTimeout(() => btn.classList.remove('active'), 1000);
+  }
+}
+</script>
+<script>loadFavorites().then(() => loadSlices());</script>
+</body>
+</html>
