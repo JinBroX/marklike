@@ -4,7 +4,7 @@
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
 <title>marklike</title>
-<link rel="stylesheet" href="/css/all.min.css?v=2026041825">
+<link rel="stylesheet" href="/css/all.min.css?v=2026041921">
 <link rel="stylesheet" href="/css/fonts.css?v=2026041701">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -125,6 +125,7 @@ body.afternoon .action-btn { color: rgba(0,0,0,0.7); }
 .loading { text-align: center; padding: 60px; color: rgba(255,255,255,0.5); }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+<script>loadFavorites().then(() => loadSlices());</script>
 </head>
 <body class="night">
 <div class="app">
@@ -161,6 +162,7 @@ let currentPage = 1;
 let totalPages = 1;
 let currentIndex = 0;
 let slices = [];
+let prevSlice = null; // 记录上一页内容
 let lang = 'zh';
 let currentSliceId = null;
 let isAnimating = false;
@@ -222,7 +224,7 @@ function renderCurrent() {
         <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
       </button>
       <button class="ca-btn icon-btn fav-btn${isFav ? ' active' : ''}" id="favBtn">
-        <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
+        <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
       </button>
       <button class="ca-btn nav-btn" id="nextBtn" title="下一条">
         <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
@@ -244,8 +246,24 @@ async function goToSlice(direction) {
   console.log('goToSlice:', direction);
   document.getElementById("content").innerHTML = '<div class="loading">加载中...</div>';
   try {
+    // 向上翻（-1）：如果有上一页记录，加载上一页
+    if (direction === -1 && prevSlice) {
+      slices = [prevSlice];
+      prevSlice = null; // 清除上一页记录
+      currentIndex = 0;
+      totalPages = 1;
+      currentPage = 1;
+      renderCurrent();
+      return;
+    }
+    
+    // 向下翻（1）或没有上一页记录：随机获取
     const res = await fetch(API + "/random");
     const data = await res.json();
+    // 保存当前内容作为上一页
+    if (slices.length > 0) {
+      prevSlice = { ...slices[currentIndex] };
+    }
     slices = data.slice ? [data.slice] : [];
     currentIndex = 0;
     totalPages = 1;
@@ -308,107 +326,15 @@ function toggleContentFav() {
 }
 
 function copyText() {
-<<<<<<< HEAD
-  const text = document.querySelector('.main-text')?.textContent || '';
-  navigator.clipboard.writeText(text).then(() => {
-    const btn = document.querySelector('.ca-btn[onclick="copyText()"]');
-    btn.classList.add('active');
-    setTimeout(() => btn.classList.remove('active'), 1000);
-  });
-}
-
-function shareContent() {
-  const s = slices[currentIndex];
-  const shareUrl = window.location.href;
-  const shareTitle = s ? (s.source || 'mark>like') : 'mark>like';
-  const shareText = s ? (s.modern || s.content || '').substring(0, 100) : '';
-  const fullText = shareText ? shareTitle + '\n\n' + shareText.substring(0, 200) + '\n\n链接：' + shareUrl : shareUrl;
-
-  // 显示分享菜单
-  const menu = document.createElement('div');
-  menu.style.cssText = 'position:fixed;top:0;left:0;right:0;bottom:0;background:rgba(0,0,0,0.5);z-index:9999;display:flex;align-items:flex-end;justify-content:center;';
-  menu.innerHTML = '<div style="background:#fff;border-radius:16px 16px 0 0;padding:20px;width:100%;max-width:500px;">' +
-    '<div style="text-align:center;color:#999;font-size:12px;padding:10px;">分享到</div>' +
-    '<div style="display:flex;justify-content:space-around;">' +
-    '<div id="shareTextBtn" style="text-align:center;cursor:pointer;padding:12px 20px;"><div style="font-size:24px;">📋</div><div style="font-size:12px;color:#333;margin-top:6px;">复制文案</div></div>' +
-    '<div id="shareImageBtn" style="text-align:center;cursor:pointer;padding:12px 20px;"><div style="font-size:24px;">🖼️</div><div style="font-size:12px;color:#333;margin-top:6px;">分享图</div></div>
-    <div id="shareLinkBtn" style="text-align:center;cursor:pointer;padding:12px 20px;"><div style="font-size:24px;">🔗</div><div style="font-size:12px;color:#333;margin-top:6px;">复制链接</div></div>' +
-    '</div></div>';
-  document.body.appendChild(menu);
-
-  // 点击背景关闭
-  menu.addEventListener('click', (e) => { if (e.target === menu) document.body.removeChild(menu); });
-
-  // 复制文案
-  document.getElementById('shareTextBtn').onclick = () => {
-    navigator.clipboard.writeText(fullText);
-    document.body.removeChild(menu);
-    const btn = document.getElementById('shareBtn');
-    btn.style.background = 'rgba(255,255,255,0.2)';
-    setTimeout(() => btn.style.background = '', 1000);
-  };
-
-  // 复制链接
-  document.getElementById('shareLinkBtn').onclick = () => {
-    navigator.clipboard.writeText(shareUrl);
-    document.body.removeChild(menu);
-    const btn = document.getElementById('shareBtn');
-    btn.style.background = 'rgba(255,255,255,0.2)';
-    setTimeout(() => btn.style.background = '', 1000);
-  };
-
-  // 生成分享图
-  document.getElementById('shareImageBtn').onclick = () => {
-    document.body.removeChild(menu);
-    generateShareImage();
-  };
-}
-
-// 生成分享图（长图+二维码）
-async function generateShareImage() {
-  const s = slices[currentIndex];
-  if (!s) return;
-  const shareUrl = window.location.href;
-  const isDark = !document.body.classList.contains('morning') && !document.body.classList.contains('afternoon');
-  const bgColor = isDark ? '#1a1a2e' : '#f5f0e8';
-  const textColor = isDark ? 'rgba(255,255,255,0.95)' : 'rgba(0,0,0,0.85)';
-  const subColor = isDark ? 'rgba(255,255,255,0.5)' : 'rgba(0,0,0,0.45)';
-
-  let displayText = s.modern || s.content || '';
-  if (lang === 'en' && s.english) displayText = s.english;
-  const source = s.source || '佚名';
-
-  // 计算文字换行
-  const canvas = document.createElement('canvas');
-  const ctx = canvas.getContext('2d');
-  ctx.font = '18px -apple-system, BlinkMacSystemFont, sans-serif';
-  const maxWidth = 520;
-  const words = displayText.split('');
-  let lines = [];
-  let line = '';
-  for (let char of words) {
-    const testLine = line + char;
-    if (ctx.measureText(testLine).width > maxWidth && line) {
-      lines.push(line);
-      line = char;
-    } else {
-      line = testLine;
-    }
-=======
   const mainText = document.querySelector('.main-text')?.textContent || '';
   const sourceText = document.querySelector('.source-text')?.textContent || '';
   const url = window.location.href;
-  // 提取域名：去掉协议，用/分割取前两部分
   const fullDomain = url.replace('https://', '').replace('http://', '');
   const domain = fullDomain.split('/').slice(0, 2).join('/').replace(/\/index\.html$/, '');
   
-  // 纯文本版本
   const plainText = mainText + '\n\n' + sourceText + '\n' + domain;
-  
-  // 富文本版本（HTML）
   const htmlText = mainText + '<br><br>' + sourceText + '<br><a href="' + url + '">' + domain + '</a>';
   
-  // 同时复制纯文本和富文本
   if (navigator.clipboard && navigator.clipboard.write) {
     const blobPlain = new Blob([plainText], { type: 'text/plain' });
     const blobHtml = new Blob([htmlText], { type: 'text/html' });
@@ -418,7 +344,6 @@ async function generateShareImage() {
       btn.classList.add('active');
       setTimeout(() => btn.classList.remove('active'), 1000);
     }).catch(() => {
-      // fallback
       navigator.clipboard.writeText(plainText);
       const btn = document.getElementById('copyBtn');
       btn.classList.add('active');
@@ -429,75 +354,9 @@ async function generateShareImage() {
     const btn = document.getElementById('copyBtn');
     btn.classList.add('active');
     setTimeout(() => btn.classList.remove('active'), 1000);
->>>>>>> 2f40eac (分享功能：复制按钮复制内容+出处+简短域名)
   }
-  if (line) lines.push(line);
-  const textHeight = lines.length * 28;
-
-  // 画布尺寸
-  const qrSize = 100;
-  const padding = 40;
-  const canvasHeight = padding + textHeight + 30 + 20 + qrSize + 80;
-  canvas.width = 600;
-  canvas.height = canvasHeight;
-
-  // 画背景
-  ctx.fillStyle = bgColor;
-  ctx.fillRect(0, 0, 600, canvasHeight);
-
-  // 画文字
-  ctx.fillStyle = textColor;
-  ctx.font = '18px -apple-system, BlinkMacSystemFont, sans-serif';
-  ctx.textAlign = 'center';
-  let y = padding + 18;
-  for (let l of lines) {
-    ctx.fillText(l, 300, y);
-    y += 28;
-  }
-
-  // 画出处
-  ctx.fillStyle = subColor;
-  ctx.font = '14px -apple-system, BlinkMacSystemFont, sans-serif';
-  ctx.fillText('—— ' + source, 300, y + 20);
-
-  // 生成二维码
-  const qrDiv = document.createElement('div');
-  qrDiv.style.cssText = 'position:fixed;left:-9999px;top:0;width:100px;height:100px;';
-  document.body.appendChild(qrDiv);
-  new QRCode(qrDiv, { text: shareUrl, width: 100, height: 100 });
-
-  setTimeout(() => {
-    const qrImg = qrDiv.querySelector('img') || qrDiv.querySelector('canvas');
-    if (qrImg) {
-      const qrY = y + 50;
-      ctx.fillStyle = subColor;
-      ctx.font = '12px -apple-system, BlinkMacSystemFont, sans-serif';
-      ctx.fillText('mark>like', 300, qrY + 15);
-      ctx.drawImage(qrImg, 250, qrY + 20, qrSize, qrSize);
-      ctx.fillText(shareUrl, 300, qrY + qrSize + 45);
-    }
-
-    document.body.removeChild(qrDiv);
-
-    canvas.toBlob((blob) => {
-      const url = URL.createObjectURL(blob);
-      const a = document.createElement('a');
-      a.href = url;
-      a.download = 'marklike-share.png';
-      a.click();
-      URL.revokeObjectURL(url);
-
-      const btn = document.getElementById('shareBtn');
-      btn.style.background = 'rgba(255,255,255,0.2)';
-      setTimeout(() => btn.style.background = '', 1000);
-    }, 'image/png');
-  }, 300);
 }
-
-
-loadFavorites().then(() => loadSlices());
-
-
 </script>
+<script>loadFavorites().then(() => loadSlices());</script>
 </body>
 </html>
