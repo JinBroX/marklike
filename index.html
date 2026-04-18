@@ -224,9 +224,6 @@ function renderCurrent() {
       <button class="ca-btn icon-btn fav-btn${isFav ? ' active' : ''}" id="favBtn">
         <svg viewBox="0 0 24 24" fill="currentColor"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
       </button>
-      <button class="ca-btn icon-btn" id="shareBtn" title="分享">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><circle cx="18" cy="5" r="3"/><circle cx="6" cy="12" r="3"/><circle cx="18" cy="19" r="3"/><line x1="8.59" y1="13.51" x2="15.42" y2="17.49"/><line x1="15.41" y1="6.51" x2="8.59" y2="10.49"/></svg>
-      </button>
       <button class="ca-btn nav-btn" id="nextBtn" title="下一条">
         <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
       </button>
@@ -237,8 +234,7 @@ function renderCurrent() {
   document.getElementById("prevBtn").addEventListener("click", () => goToSlice(-1));
   document.getElementById("nextBtn").addEventListener("click", () => goToSlice(1));
   document.getElementById("copyBtn").addEventListener("click", copyText);
-  document.getElementById("shareBtn").addEventListener("click", shareContent);
-  document.getElementById("favBtn").addEventListener("click", toggleContentFav);
+    document.getElementById("favBtn").addEventListener("click", toggleContentFav);
   
   document.getElementById("content").scrollTop = 0;
 }
@@ -312,6 +308,7 @@ function toggleContentFav() {
 }
 
 function copyText() {
+<<<<<<< HEAD
   const text = document.querySelector('.main-text')?.textContent || '';
   navigator.clipboard.writeText(text).then(() => {
     const btn = document.querySelector('.ca-btn[onclick="copyText()"]');
@@ -397,6 +394,42 @@ async function generateShareImage() {
     } else {
       line = testLine;
     }
+=======
+  const mainText = document.querySelector('.main-text')?.textContent || '';
+  const sourceText = document.querySelector('.source-text')?.textContent || '';
+  const url = window.location.href;
+  // 提取域名：去掉协议，用/分割取前两部分
+  const fullDomain = url.replace('https://', '').replace('http://', '');
+  const domain = fullDomain.split('/').slice(0, 2).join('/').replace(/\/index\.html$/, '');
+  
+  // 纯文本版本
+  const plainText = mainText + '\n\n' + sourceText + '\n' + domain;
+  
+  // 富文本版本（HTML）
+  const htmlText = mainText + '<br><br>' + sourceText + '<br><a href="' + url + '">' + domain + '</a>';
+  
+  // 同时复制纯文本和富文本
+  if (navigator.clipboard && navigator.clipboard.write) {
+    const blobPlain = new Blob([plainText], { type: 'text/plain' });
+    const blobHtml = new Blob([htmlText], { type: 'text/html' });
+    const item = new ClipboardItem({ 'text/plain': blobPlain, 'text/html': blobHtml });
+    navigator.clipboard.write([item]).then(() => {
+      const btn = document.getElementById('copyBtn');
+      btn.classList.add('active');
+      setTimeout(() => btn.classList.remove('active'), 1000);
+    }).catch(() => {
+      // fallback
+      navigator.clipboard.writeText(plainText);
+      const btn = document.getElementById('copyBtn');
+      btn.classList.add('active');
+      setTimeout(() => btn.classList.remove('active'), 1000);
+    });
+  } else {
+    navigator.clipboard.writeText(plainText);
+    const btn = document.getElementById('copyBtn');
+    btn.classList.add('active');
+    setTimeout(() => btn.classList.remove('active'), 1000);
+>>>>>>> 2f40eac (分享功能：复制按钮复制内容+出处+简短域名)
   }
   if (line) lines.push(line);
   const textHeight = lines.length * 28;
@@ -461,7 +494,10 @@ async function generateShareImage() {
   }, 300);
 }
 
+
 loadFavorites().then(() => loadSlices());
+
+
 </script>
 </body>
 </html>
