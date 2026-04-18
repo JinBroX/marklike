@@ -80,10 +80,16 @@ html, body {
 }
 .content {
   width: 100%; height: 100%; display: flex; flex-direction: column;
-  padding: 70px 28px 100px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  scroll-behavior: smooth;
+}
+
+/* 内容容器 - 固定一屏 */
+.content-inner {
+  min-height: calc(100vh - 70px - 100px);
+  padding: 70px 28px 100px;
+  box-sizing: border-box;
 }
 
 /* ========================================
@@ -137,6 +143,19 @@ html, body {
   padding-top: 16px; border-top: 1px solid var(--border-color);
 }
 
+/* 分页指示器 */
+.page-indicator {
+  position: fixed; bottom: 70px; right: 20px;
+  background: var(--accent); color: #fff;
+  padding: 4px 10px; border-radius: 12px;
+  font-size: 11px; font-weight: 500;
+  opacity: 0.8;
+}
+
+.page-block {
+  position: relative;
+}
+
 /* ========================================
    底部操作栏
    ======================================== */
@@ -161,7 +180,6 @@ html, body {
 .loading { text-align: center; padding: 60px; color: var(--text-muted); }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script>loadFavorites().then(() => loadSlices());</script>
 </head>
 <body class="night">
 <div class="app">
@@ -194,11 +212,8 @@ function setTheme() {
 setTheme();
 
 const API = "/api";
-let currentPage = 1;
-let totalPages = 1;
 let currentIndex = 0;
 let slices = [];
-let prevSlice = null; // 记录上一页内容
 let lang = 'zh';
 let currentSliceId = null;
 let isAnimating = false;
@@ -235,13 +250,18 @@ async function loadSlices() {
     const res = await fetch(API + "/random");
     const data = await res.json();
     slices = data.slice ? [data.slice] : [];
-    totalPages = 1;
     currentIndex = 0;
     renderCurrent();
   } catch (err) {
     document.getElementById("content").innerHTML = '<div class="loading">加载失败</div>';
   }
 }
+
+// 存储当前内容的页面数据
+let currentPages = [];
+let currentPage = 1;
+let totalPages = 1;
+let currentSource = '';
 
 function renderCurrent() {
   const s = slices[currentIndex];
@@ -252,61 +272,130 @@ function renderCurrent() {
   if (lang === 'en' && s.english) displayText = s.english;
   
   const isFav = favoritedIds.has(s.id);
-  document.getElementById("content").innerHTML = `
-    <div class="main-text">${displayText}<span class="source-inline">—— ${s.source || '佚名'}</span></div>
+  currentSource = s.source || '佚名';
+  
+  // 固定每屏 280 字，超过280字就分屏
+  const charsPerScreen = 280;
+  
+  // 生成页面数组
+  currentPages = [];
+  let remaining = displayText;
+  while (remaining.length > 0) {
+    const chunk = remaining.substring(0, charsPerScreen);
+    remaining = remaining.substring(charsPerScreen);
+    
+    if (remaining.length > 0) {
+      const lastPunct = chunk.lastIndexOf('。');
+      const lastComma = chunk.lastIndexOf('，');
+      const breakPos = Math.max(lastPunct, lastComma);
+      if (breakPos > charsPerScreen * 0.7) {
+        currentPages.push(chunk.substring(0, breakPos + 1));
+        remaining = chunk.substring(breakPos + 1) + remaining;
+      } else {
+        currentPages.push(chunk);
+      }
+    } else {
+      currentPages.push(chunk);
+    }
+  }
+  
+  currentPage = 1;
+  totalPages = currentPages.length;
+  
+  renderPage();
+}
+
+function renderPage() {
+  const isFav = favoritedIds.has(currentSliceId);
+  const currentText = currentPages[currentPage - 1] || '';
+  const isFirstPage = currentPage === 1;
+  const isLastPage = currentPage === totalPages;
+  
+  // 根据是否是第一页/最后一页决定按钮配置
+  const prevBtn = isFirstPage ? `
+    <button class="ca-btn nav-btn disabled" id="prevBtn" title="已是第一页">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+    </button>
+  ` : `
+    <button class="ca-btn nav-btn" id="prevBtn" title="上一页">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+    </button>
+  `;
+  
+  const nextBtn = isLastPage ? `
+    <button class="ca-btn nav-btn" id="nextBtn" title="下一条">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+  ` : `
+    <button class="ca-btn nav-btn" id="nextBtn" title="下一页">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+  `;
+  
+  const pageIndicator = totalPages > 1 ? `
+    <div class="page-indicator">${currentPage}/${totalPages}</div>
+  ` : '';
+  
+  const bottomActions = `
     <div class="content-divider"></div>
     <div class="content-actions">
-      <button class="ca-btn nav-btn" id="prevBtn" title="上一条">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
-      </button>
+      ${prevBtn}
+      ${pageIndicator}
       <button class="ca-btn icon-btn" id="copyBtn" title="复制">
         <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
       </button>
       <button class="ca-btn icon-btn fav-btn${isFav ? ' active' : ''}" id="favBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
       </button>
-      <button class="ca-btn nav-btn" id="nextBtn" title="下一条">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
+      ${nextBtn}
     </div>
   `;
   
-  // 绑定按钮事件
-  document.getElementById("prevBtn").addEventListener("click", () => goToSlice(-1));
-  document.getElementById("nextBtn").addEventListener("click", () => goToSlice(1));
-  document.getElementById("copyBtn").addEventListener("click", copyText);
-    document.getElementById("favBtn").addEventListener("click", toggleContentFav);
+  const screenHeight = window.innerHeight - 70 - 100;
+  const pageContent = `
+    <div class="page-block" style="min-height: ${screenHeight}px; padding: 70px 28px 100px; box-sizing: border-box;">
+      <div class="main-text">${currentText}<span class="source-inline">—— ${currentSource}</span></div>
+      ${bottomActions}
+    </div>
+  `;
   
+  document.getElementById("content").innerHTML = pageContent;
   document.getElementById("content").scrollTop = 0;
+  
+  // 绑定按钮事件
+  document.getElementById("prevBtn")?.addEventListener("click", prevPage);
+  document.getElementById("nextBtn")?.addEventListener("click", nextPage);
+  document.getElementById("copyBtn")?.addEventListener("click", copyText);
+  document.getElementById("favBtn")?.addEventListener("click", toggleContentFav);
 }
 
-// 简化的goToSlice - 去掉动画，直接加载新内容
+function prevPage() {
+  if (currentPage > 1) {
+    currentPage--;
+    renderPage();
+  }
+}
+
+async function nextPage() {
+  if (currentPage < totalPages) {
+    // 还有下一页，继续当前内容
+    currentPage++;
+    renderPage();
+  } else {
+    // 最后一页，加载新内容
+    goToSlice(1);
+  }
+}
+
+// 加载新内容（随机获取）
 async function goToSlice(direction) {
-  console.log('goToSlice:', direction);
+  console.log('goToSlice: loading new content');
   document.getElementById("content").innerHTML = '<div class="loading">加载中...</div>';
   try {
-    // 向上翻（-1）：如果有上一页记录，加载上一页
-    if (direction === -1 && prevSlice) {
-      slices = [prevSlice];
-      prevSlice = null; // 清除上一页记录
-      currentIndex = 0;
-      totalPages = 1;
-      currentPage = 1;
-      renderCurrent();
-      return;
-    }
-    
-    // 向下翻（1）或没有上一页记录：随机获取
     const res = await fetch(API + "/random");
     const data = await res.json();
-    // 保存当前内容作为上一页
-    if (slices.length > 0) {
-      prevSlice = { ...slices[currentIndex] };
-    }
     slices = data.slice ? [data.slice] : [];
     currentIndex = 0;
-    totalPages = 1;
-    currentPage = 1;
     renderCurrent();
   } catch (err) {
     document.getElementById("content").innerHTML = '<div class="loading">加载失败</div>';
@@ -316,7 +405,45 @@ async function goToSlice(direction) {
 document.getElementById("langBtn").onclick = () => {
   lang = lang === 'zh' ? 'en' : 'zh';
   document.getElementById("langBtn").textContent = lang === 'zh' ? 'EN' : '中文';
-  renderCurrent();
+  // 重新生成页面数据并渲染
+  const s = slices[currentIndex];
+  if (s) {
+    let displayText = s.modern || s.content || '';
+    if (lang === 'en' && s.english) displayText = s.english;
+    
+    const screenHeight = window.innerHeight - 70 - 100;
+    const lineHeight = 28;
+    const charsPerLine = 40;
+    const linesPerScreen = Math.floor(screenHeight / lineHeight);
+    const charsPerScreen = linesPerScreen * charsPerLine;
+    
+    // 重新生成分页数据
+    currentPages = [];
+    let remaining = displayText;
+    while (remaining.length > 0) {
+      const chunk = remaining.substring(0, charsPerScreen);
+      remaining = remaining.substring(charsPerScreen);
+      
+      if (remaining.length > 0) {
+        const lastPunct = chunk.lastIndexOf('。');
+        const lastComma = chunk.lastIndexOf('，');
+        const breakPos = Math.max(lastPunct, lastComma);
+        if (breakPos > charsPerScreen * 0.7) {
+          currentPages.push(chunk.substring(0, breakPos + 1));
+          remaining = chunk.substring(breakPos + 1) + remaining;
+        } else {
+          currentPages.push(chunk);
+        }
+      } else {
+        currentPages.push(chunk);
+      }
+    }
+    
+    totalPages = currentPages.length;
+    if (currentPage > totalPages) currentPage = totalPages;
+    currentSource = s.source || '佚名';
+    renderPage();
+  }
 };
 
 document.getElementById("userBtn").onclick = () => {
@@ -333,8 +460,33 @@ let touchStartY = 0;
 document.addEventListener("touchstart", (e) => { touchStartY = e.changedTouches[0].screenY; }, { passive: true });
 document.addEventListener("touchend", (e) => {
   const diff = e.changedTouches[0].screenY - touchStartY;
-  if (diff < -80) goToSlice(1);
-  if (diff > 80) goToSlice(-1);
+  const scrollEl = document.getElementById("content");
+  
+  // 向上滑 > 80px 翻到下一篇
+  if (diff < -80) {
+    const scrollTop = scrollEl.scrollTop;
+    if (scrollTop < 10) {
+      // 已在顶部，翻到下一篇
+      goToSlice(1);
+    } else {
+      // 没到顶部，先滚到顶部
+      scrollEl.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+  // 向下滑 > 80px 翻到上一篇
+  if (diff > 80) {
+    const scrollTop = scrollEl.scrollTop;
+    const scrollHeight = scrollEl.scrollHeight;
+    const clientHeight = scrollEl.clientHeight;
+    const atBottom = scrollTop + clientHeight >= scrollHeight - 10;
+    if (atBottom) {
+      // 已在底部，翻到上一篇
+      goToSlice(-1);
+    } else {
+      // 没到底部，先滚到底部
+      scrollEl.scrollTo({ top: scrollHeight, behavior: 'smooth' });
+    }
+  }
 }, { passive: true });
 
 document.addEventListener("keydown", (e) => {
