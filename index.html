@@ -143,15 +143,15 @@ html, body {
   padding-top: 16px; border-top: 1px solid var(--border-color);
 }
 
-/* 分页指示器 - 固定底部右侧，和图标同一水平线 */
+/* 分页指示器 - 跟随内容，放在出处后面 */
 .page-indicator {
-  position: fixed; bottom: 24px; right: 28px;
   display: inline-flex; align-items: center; justify-content: center;
   background: var(--accent); color: #fff;
-  padding: 6px 14px; border-radius: 14px;
-  font-size: 14px; font-weight: 600;
-  letter-spacing: 0.5px;
-  box-shadow: 0 2px 8px rgba(201, 169, 110, 0.3);
+  padding: 4px 12px; border-radius: 12px;
+  font-size: 15px; font-weight: 600;
+  margin-left: 12px;
+  vertical-align: middle;
+  box-shadow: 0 2px 6px rgba(201, 169, 110, 0.25);
 }
 
 .page-block {
@@ -326,7 +326,7 @@ function renderPage() {
   
   // 根据是否是第一页/最后一页决定按钮配置（已移除上下翻按钮，仅保留页码）
   const pageIndicator = totalPages > 1 ? `
-    <div class="page-indicator">${currentPage}/${totalPages}</div>
+    <span class="page-indicator">${currentPage}/${totalPages}</span>
   ` : '';
   
   const bottomActions = `
@@ -343,10 +343,13 @@ function renderPage() {
   const screenHeight = window.innerHeight - 70 - 100;
   const pageContent = `
     <div class="page-block" style="min-height: ${screenHeight}px; padding: 70px 28px 60px; box-sizing: border-box;">
-      <div class="main-text">${currentText}<span class="source-inline">—— ${currentSource}</span></div>
+      <div class="main-text">${currentText}</div>
+      <div class="source" style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
+        <span>—— ${currentSource}</span>
+        ${pageIndicator}
+      </div>
       ${bottomActions}
     </div>
-    ${pageIndicator}
   `;
   
   document.getElementById("content").innerHTML = pageContent;
