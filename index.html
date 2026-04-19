@@ -190,6 +190,42 @@ html, body {
 .ca-btn.active svg { stroke: none !important; fill: var(--fav-active) !important; }
 
 .loading { text-align: center; padding: 60px; color: var(--text-muted); }
+
+/* 添加桌面提示条 */
+#installPrompt {
+  position: fixed;
+  bottom: 0;
+  left: 0;
+  right: 0;
+  background: linear-gradient(135deg, #c9a96e, #d4af37);
+  padding: 12px 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 12px;
+  font-size: 14px;
+  color: #1a1a1a;
+  z-index: 9999;
+  box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
+}
+
+#installPrompt button {
+  padding: 6px 14px;
+  border-radius: 20px;
+  border: none;
+  font-size: 13px;
+  cursor: pointer;
+}
+
+#installBtn {
+  background: #1a1a1a;
+  color: #c9a96e;
+}
+
+#dismissBtn {
+  background: rgba(255,255,255,0.3);
+  color: #1a1a1a;
+}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
@@ -404,9 +440,53 @@ async function goToSlice(direction) {
     slices = data.slice ? [data.slice] : [];
     currentIndex = 0;
     renderCurrent();
+    // 阅读计数 + 显示添加桌面提示
+    showInstallPrompt();
   } catch (err) {
     document.getElementById("content").innerHTML = '<div class="loading">加载失败</div>';
   }
+}
+
+// 检测是否是PWA模式
+function isPWA() {
+  return window.matchMedia('(display-mode: standalone)').matches || 
+         window.navigator.standalone === true;
+}
+
+// 显示添加桌面提示
+function showInstallPrompt() {
+  // 如果是PWA模式，不显示提示
+  if (isPWA() || localStorage.getItem('pwaPromptDismissed')) return;
+  
+  // 阅读计数
+  const count = parseInt(localStorage.getItem('readCount') || '0') + 1;
+  localStorage.setItem('readCount', count);
+  
+  // 每阅读15篇显示一次提示
+  if (count % 15 !== 0) return;
+  
+  // 已经显示过就不再显示
+  if (localStorage.getItem('pwaPromptShown')) return;
+  
+  const prompt = document.createElement('div');
+  prompt.id = 'installPrompt';
+  prompt.innerHTML = `
+    <span>喜欢MarkLike？</span>
+    <button id="installBtn">添加到桌面</button>
+    <button id="dismissBtn">暂不需要</button>
+  `;
+  document.body.appendChild(prompt);
+  
+  document.getElementById('installBtn').onclick = () => {
+    localStorage.setItem('pwaPromptShown', 'true');
+    prompt.remove();
+    alert('请使用浏览器的"添加到主屏幕"功能\n(iOS: 分享按钮 → 添加到主屏幕)');
+  };
+  
+  document.getElementById('dismissBtn').onclick = () => {
+    localStorage.setItem('pwaPromptDismissed', 'true');
+    prompt.remove();
+  };
 }
 
 document.getElementById("langBtn").onclick = () => {
