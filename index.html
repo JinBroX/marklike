@@ -219,6 +219,9 @@ let currentSliceId = null;
 let isAnimating = false;
 let favoritedIds = new Set();
 
+// 历史记录栈（按顺序回退用）
+let historyStack = [];
+
 async function loadFavorites() {
   const userStr = localStorage.getItem("user");
   if (!userStr) { favoritedIds.clear(); return; }
@@ -311,27 +314,7 @@ function renderPage() {
   const isFirstPage = currentPage === 1;
   const isLastPage = currentPage === totalPages;
   
-  // 根据是否是第一页/最后一页决定按钮配置
-  const prevBtn = isFirstPage ? `
-    <button class="ca-btn nav-btn disabled" id="prevBtn" title="已是第一页">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
-    </button>
-  ` : `
-    <button class="ca-btn nav-btn" id="prevBtn" title="上一页">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
-    </button>
-  `;
-  
-  const nextBtn = isLastPage ? `
-    <button class="ca-btn nav-btn" id="nextBtn" title="下一条">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-    </button>
-  ` : `
-    <button class="ca-btn nav-btn" id="nextBtn" title="下一页">
-      <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-    </button>
-  `;
-  
+  // 根据是否是第一页/最后一页决定按钮配置（已移除上下翻按钮，仅保留页码）
   const pageIndicator = totalPages > 1 ? `
     <div class="page-indicator">${currentPage}/${totalPages}</div>
   ` : '';
@@ -339,7 +322,6 @@ function renderPage() {
   const bottomActions = `
     <div class="content-divider"></div>
     <div class="content-actions">
-      ${prevBtn}
       ${pageIndicator}
       <button class="ca-btn icon-btn" id="copyBtn" title="复制">
         <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
@@ -347,7 +329,6 @@ function renderPage() {
       <button class="ca-btn icon-btn fav-btn${isFav ? ' active' : ''}" id="favBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
       </button>
-      ${nextBtn}
     </div>
   `;
   
@@ -363,33 +344,34 @@ function renderPage() {
   document.getElementById("content").scrollTop = 0;
   
   // 绑定按钮事件
-  document.getElementById("prevBtn")?.addEventListener("click", prevPage);
-  document.getElementById("nextBtn")?.addEventListener("click", nextPage);
   document.getElementById("copyBtn")?.addEventListener("click", copyText);
   document.getElementById("favBtn")?.addEventListener("click", toggleContentFav);
 }
 
-function prevPage() {
-  if (currentPage > 1) {
-    currentPage--;
-    renderPage();
-  }
-}
-
-async function nextPage() {
-  if (currentPage < totalPages) {
-    // 还有下一页，继续当前内容
-    currentPage++;
-    renderPage();
-  } else {
-    // 最后一页，加载新内容
-    goToSlice(1);
-  }
-}
-
-// 加载新内容（随机获取）
+// 加载新内容（随机获取），direction 1=下一页(随机) -1=上一页(从历史恢复)
 async function goToSlice(direction) {
-  console.log('goToSlice: loading new content');
+  if (direction === 1) {
+    // 随机下一条：把当前内容加入历史栈
+    const currentSlice = slices[currentIndex];
+    if (currentSlice) {
+      historyStack.push(currentSlice);
+      // 最多保留50条历史
+      if (historyStack.length > 50) historyStack.shift();
+    }
+    console.log('goToSlice: loading new random content');
+  } else {
+    // 从历史栈恢复上一条
+    if (historyStack.length === 0) {
+      console.log('goToSlice: no history, ignore');
+      return;
+    }
+    const prevSlice = historyStack.pop();
+    slices = [prevSlice];
+    currentIndex = 0;
+    renderCurrent();
+    return;
+  }
+  
   document.getElementById("content").innerHTML = '<div class="loading">加载中...</div>';
   try {
     const res = await fetch(API + "/random");
@@ -461,26 +443,35 @@ document.addEventListener("touchstart", (e) => { touchStartY = e.changedTouches[
 document.addEventListener("touchend", (e) => {
   const diff = e.changedTouches[0].screenY - touchStartY;
   const scrollEl = document.getElementById("content");
+  const scrollTop = scrollEl.scrollTop;
+  const scrollHeight = scrollEl.scrollHeight;
+  const clientHeight = scrollEl.clientHeight;
+  const atTop = scrollTop < 10;
+  const atBottom = scrollTop + clientHeight >= scrollHeight - 10;
   
-  // 向上滑 > 80px 翻到下一篇
+  // 上滑 > 80px
   if (diff < -80) {
-    const scrollTop = scrollEl.scrollTop;
-    if (scrollTop < 10) {
-      // 已在顶部，翻到下一篇
+    if (currentPage > 1) {
+      // 不是第一页，翻到上一页
+      currentPage--;
+      renderPage();
+    } else if (atTop) {
+      // 在顶部，随机下一条
       goToSlice(1);
     } else {
       // 没到顶部，先滚到顶部
       scrollEl.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
-  // 向下滑 > 80px 翻到上一篇
+  
+  // 下滑 > 80px
   if (diff > 80) {
-    const scrollTop = scrollEl.scrollTop;
-    const scrollHeight = scrollEl.scrollHeight;
-    const clientHeight = scrollEl.clientHeight;
-    const atBottom = scrollTop + clientHeight >= scrollHeight - 10;
-    if (atBottom) {
-      // 已在底部，翻到上一篇
+    if (currentPage < totalPages) {
+      // 不是最后一页，翻到下一页
+      currentPage++;
+      renderPage();
+    } else if (atBottom) {
+      // 在底部，从历史栈退回上一条
       goToSlice(-1);
     } else {
       // 没到底部，先滚到底部
@@ -490,8 +481,20 @@ document.addEventListener("touchend", (e) => {
 }, { passive: true });
 
 document.addEventListener("keydown", (e) => {
-  if (e.key === 'ArrowDown' || e.key === ' ') goToSlice(1);
-  if (e.key === 'ArrowUp') goToSlice(-1);
+  if (e.key === 'ArrowDown' || e.key === ' ') {
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderPage();
+    } else {
+      goToSlice(1);
+    }
+  }
+  if (e.key === 'ArrowUp') {
+    if (currentPage > 1) {
+      currentPage--;
+      renderPage();
+    }
+  }
 });
 
 function toggleContentFav() {
