@@ -360,13 +360,14 @@ function renderPage() {
   document.getElementById("copyBtn")?.addEventListener("click", copyText);
   document.getElementById("favBtn")?.addEventListener("click", toggleContentFav);
   document.getElementById("pageIndicator")?.addEventListener("click", () => {
-    // 点击页码：分页内往返切换（第一页→最后一页，最后一页→第一页）
-    if (currentPage === 1 && totalPages > 1) {
-      currentPage = totalPages;
-    } else {
-      currentPage = 1;
+    // 点击分屏按钮：顺序跳到下一屏
+    if (totalPages > 1) {
+      currentPage++;
+      if (currentPage > totalPages) {
+        currentPage = 1; // 最后一页后循环回第一页
+      }
+      renderPage();
     }
-    renderPage();
   });
 }
 
