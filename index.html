@@ -456,17 +456,17 @@ function isPWA() {
 // 显示添加桌面提示
 function showInstallPrompt() {
   // 如果是PWA模式，不显示提示
-  if (isPWA() || localStorage.getItem('pwaPromptDismissed')) return;
+  if (isPWA()) return;
   
   // 阅读计数
   const count = parseInt(localStorage.getItem('readCount') || '0') + 1;
   localStorage.setItem('readCount', count);
   
-  // 每阅读15篇显示一次提示
-  if (count % 8 !== 0) return;
+  // 每阅读21篇显示一次提示
+  if (count % 21 !== 0) return;
   
   // 已经显示过就不再显示
-  if (localStorage.getItem('pwaPromptShown')) return;
+  
   
   const prompt = document.createElement('div');
   prompt.id = 'installPrompt';
@@ -478,7 +478,7 @@ function showInstallPrompt() {
   document.body.appendChild(prompt);
   
   document.getElementById('installBtn').onclick = () => {
-    localStorage.setItem('pwaPromptShown', 'true');
+    
     prompt.remove();
     // 根据设备类型显示不同提示
     const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
@@ -490,7 +490,7 @@ function showInstallPrompt() {
   };
   
   document.getElementById('dismissBtn').onclick = () => {
-    localStorage.setItem('pwaPromptDismissed', 'true');
+    // removed dismiss logic
     prompt.remove();
   };
 }
