@@ -480,7 +480,13 @@ function showInstallPrompt() {
   document.getElementById('installBtn').onclick = () => {
     localStorage.setItem('pwaPromptShown', 'true');
     prompt.remove();
-    alert('请使用浏览器的"添加到主屏幕"功能\n(iOS: 分享按钮 → 添加到主屏幕)');
+    // 根据设备类型显示不同提示
+    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
+    if (isIOS) {
+      alert('iOS用户：请点底部 Safari 的分享按钮(方形箭头)\n→ 选择"添加到主屏幕"');
+    } else {
+      alert('安卓用户：请点右上角菜单(三个点)\n→ 选择"添加到主屏幕"或"安装"');
+    }
   };
   
   document.getElementById('dismissBtn').onclick = () => {
