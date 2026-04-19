@@ -143,17 +143,27 @@ html, body {
   padding-top: 16px; border-top: 1px solid var(--border-color);
 }
 
-/* 分页指示器 */
+/* 分页指示器 - 固定底部右侧，和图标同一水平线 */
 .page-indicator {
-  position: fixed; bottom: 70px; right: 20px;
+  position: fixed; bottom: 24px; right: 28px;
+  display: inline-flex; align-items: center; justify-content: center;
   background: var(--accent); color: #fff;
-  padding: 4px 10px; border-radius: 12px;
-  font-size: 11px; font-weight: 500;
-  opacity: 0.8;
+  padding: 6px 14px; border-radius: 14px;
+  font-size: 14px; font-weight: 600;
+  letter-spacing: 0.5px;
+  box-shadow: 0 2px 8px rgba(201, 169, 110, 0.3);
 }
 
 .page-block {
   position: relative;
+}
+
+/* 内容操作栏 - 靠左对齐，图标间距小 */
+.content-actions {
+  display: flex; align-items: center; justify-content: flex-start; gap: 12px;
+  margin-top: 16px;
+  padding-top: 16px;
+  border-top: 1px solid var(--border-color);
 }
 
 /* ========================================
@@ -320,9 +330,7 @@ function renderPage() {
   ` : '';
   
   const bottomActions = `
-    <div class="content-divider"></div>
     <div class="content-actions">
-      ${pageIndicator}
       <button class="ca-btn icon-btn" id="copyBtn" title="复制">
         <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
       </button>
@@ -334,10 +342,11 @@ function renderPage() {
   
   const screenHeight = window.innerHeight - 70 - 100;
   const pageContent = `
-    <div class="page-block" style="min-height: ${screenHeight}px; padding: 70px 28px 100px; box-sizing: border-box;">
+    <div class="page-block" style="min-height: ${screenHeight}px; padding: 70px 28px 60px; box-sizing: border-box;">
       <div class="main-text">${currentText}<span class="source-inline">—— ${currentSource}</span></div>
       ${bottomActions}
     </div>
+    ${pageIndicator}
   `;
   
   document.getElementById("content").innerHTML = pageContent;
