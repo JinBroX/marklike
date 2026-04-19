@@ -326,7 +326,7 @@ function renderPage() {
   
   // 根据是否是第一页/最后一页决定按钮配置（已移除上下翻按钮，仅保留页码）
   const pageIndicator = totalPages > 1 ? `
-    <span class="page-indicator">${currentPage}/${totalPages}</span>
+    <span class="page-indicator" id="pageIndicator">${currentPage}/${totalPages}</span>
   ` : '';
   
   const bottomActions = `
@@ -358,6 +358,16 @@ function renderPage() {
   // 绑定按钮事件
   document.getElementById("copyBtn")?.addEventListener("click", copyText);
   document.getElementById("favBtn")?.addEventListener("click", toggleContentFav);
+  document.getElementById("pageIndicator")?.addEventListener("click", () => {
+    // 点击页码翻到下一页/下半段
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderPage();
+    } else {
+      // 最后一页，加载新内容
+      goToSlice(1);
+    }
+  });
 }
 
 // 加载新内容（随机获取），direction 1=下一页(随机) -1=上一页(从历史恢复)
