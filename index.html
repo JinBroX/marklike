@@ -512,15 +512,22 @@ function toggleContentFav() {
 }
 
 function copyText() {
-  const mainText = document.querySelector('.main-text')?.textContent || '';
+  // 从完整数据取文本，而不是从当前DOM元素（当前屏可能只是文章的一部分）
+  const s = slices[currentIndex];
+  if (!s) return;
+  
+  // 根据当前语言模式选择完整文本
+  let fullText = s.modern || s.content || '';
+  if (lang === 'en' && s.english) fullText = s.english;
+  
   const sourceEl = document.querySelector('.source');
   const sourceText = sourceEl?.textContent?.replace(/\d+\/\d+$/, '').trim() || '';
   const url = window.location.href;
   const fullDomain = url.replace('https://', '').replace('http://', '');
   const domain = fullDomain.split('/').slice(0, 2).join('/').replace(/\/index\.html$/, '');
   
-  const plainText = mainText + '\n\n' + sourceText + '\n' + domain;
-  const htmlText = mainText + '<br><br>' + sourceText + '<br><a href="' + url + '">' + domain + '</a>';
+  const plainText = fullText + '\n\n' + sourceText + '\n' + domain;
+  const htmlText = fullText + '<br><br>' + sourceText + '<br><a href="' + url + '">' + domain + '</a>';
   
   if (navigator.clipboard && navigator.clipboard.write) {
     const blobPlain = new Blob([plainText], { type: 'text/plain' });
