@@ -513,7 +513,8 @@ function toggleContentFav() {
 
 function copyText() {
   const mainText = document.querySelector('.main-text')?.textContent || '';
-  const sourceText = document.querySelector('.source-text')?.textContent || '';
+  const sourceEl = document.querySelector('.source');
+  const sourceText = sourceEl?.textContent?.replace(/\d+\/\d+$/, '').trim() || '';
   const url = window.location.href;
   const fullDomain = url.replace('https://', '').replace('http://', '');
   const domain = fullDomain.split('/').slice(0, 2).join('/').replace(/\/index\.html$/, '');
