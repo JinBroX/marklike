@@ -8,124 +8,178 @@
 <link rel="stylesheet" href="/css/fonts.css?v=2026041701">
 <style>
 * { margin: 0; padding: 0; box-sizing: border-box; }
+
+/* ========================================
+   CSS 变量系统：一套自适应方案
+   ======================================== */
+:root {
+  /* 背景 */
+  --bg-primary: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%);
+  --bg-header: linear-gradient(to bottom, rgba(13,13,13,0.8) 0%, transparent 100%);
+  --bg-actions: linear-gradient(to top, rgba(13,13,13,0.8) 0%, transparent 100%);
+  --bg-card: rgba(255,255,255,0.05);
+  --bg-card-border: rgba(255,255,255,0.08);
+
+  /* 文字 */
+  --text-primary: #fff;
+  --text-secondary: rgba(255,255,255,0.4);
+  --text-muted: rgba(255,255,255,0.5);
+
+  /* 图标 */
+  --icon-color: #fff;
+  --icon-btn-bg: transparent;
+
+  /* 边框 */
+  --border-color: rgba(255,255,255,0.1);
+  --header-btn-border: rgba(255,255,255,0.25);
+
+  /* 强调色 */
+  --accent: #c9a96e;
+  --accent-hover: #4da6ff;
+  --fav-active: #c9a96e;
+
+  /* Logo */
+  --logo-color: #fff;
+}
+
+/* 白天模式 (morning / afternoon) */
+body.morning,
+body.afternoon {
+  --bg-primary: linear-gradient(135deg, #f5f0e8 0%, #fff8f0 100%);
+  --bg-header: linear-gradient(to bottom, rgba(254,249,243,0.8) 0%, transparent 100%);
+  --bg-actions: linear-gradient(to top, rgba(254,249,243,0.8) 0%, transparent 100%);
+  --bg-card: rgba(255,255,255,0.8);
+  --bg-card-border: transparent;
+  --text-primary: #3a3530;
+  --text-secondary: rgba(0,0,0,0.4);
+  --text-muted: rgba(0,0,0,0.5);
+  --icon-color: #333;
+  --border-color: rgba(0,0,0,0.1);
+  --header-btn-border: rgba(0,0,0,0.2);
+  --logo-color: #000;
+}
+
+/* afternoon 特殊背景 */
+body.afternoon {
+  --bg-primary: linear-gradient(135deg, #fff8f0 0%, #fff5e6 100%);
+}
+
+/* ========================================
+   全局样式
+   ======================================== */
 html, body {
   width: 100%; height: 100%; overflow: hidden;
   font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-  background: #0d0d0d; color: #fff;
-  transition: background 0.5s ease;
+  background: var(--bg-primary);
+  color: var(--text-primary);
+  transition: background 0.5s ease, color 0.5s ease;
 }
-body.morning { background: linear-gradient(135deg, #f5f0e8 0%, #fff8f0 100%); color: #000; }
-body.afternoon { background: linear-gradient(135deg, #fff8f0 0%, #fff5e6 100%); color: #000; }
-body.evening { background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%); color: #fff; }
-body.night { background: linear-gradient(135deg, #0f0f1a 0%, #1a1a2e 100%); color: #fff; }
 
 .app {
   width: 100%; height: 100%; position: relative; overflow: hidden;
 }
 .content {
   width: 100%; height: 100%; display: flex; flex-direction: column;
-  padding: 70px 28px 100px;
   overflow-y: auto;
   -webkit-overflow-scrolling: touch;
-  transition: transform 0.35s cubic-bezier(0.25, 0.46, 0.45, 0.94);
+  scroll-behavior: smooth;
 }
 
+/* 内容容器 - 固定一屏 */
+.content-inner {
+  min-height: calc(100vh - 70px - 100px);
+  padding: 70px 28px 100px;
+  box-sizing: border-box;
+}
+
+/* ========================================
+   头部
+   ======================================== */
 .header {
   position: fixed; top: 0; left: 0; width: 100%; z-index: 100;
   padding: 16px 20px; display: flex; justify-content: space-between; align-items: center;
-  background: transparent;
-  background: linear-gradient(to bottom, rgba(254,249,243,0.8) 0%, transparent 100%);
+  background: var(--bg-header);
 }
-body.evening .header,
-body.night .header {
-  background: linear-gradient(to bottom, rgba(13,13,13,0.8) 0%, transparent 100%);
-}
-.logo { font-size: 20px; font-weight: 700; letter-spacing: -1px; display: inline; }
-.logo-arrow { color: #c9a96e !important; }
-.logo-mark { color: #fff; }
-.logo-like { color: #c9a96e; }
-body.morning .logo-mark,
-body.afternoon .logo-mark { color: #000; }
-body.morning .logo,
-body.afternoon .logo { color: #000; }
+.logo { font-size: 20px; font-weight: 700; letter-spacing: -1px; display: inline; color: var(--logo-color); }
+.logo-arrow { color: var(--accent) !important; }
+.logo-mark { color: var(--logo-color); }
+.logo-like { color: var(--accent); }
 .header-actions { display: flex; gap: 12px; }
 
-/* 底部按钮：圆形透明 */
+/* 圆形图标按钮 */
 .icon-btn {
-  color: #fff;
   width: 36px; height: 36px; border-radius: 50%; border: none; cursor: pointer;
   display: flex; align-items: center; justify-content: center;
-  background: transparent; transition: all 0.2s;
+  background: var(--icon-btn-bg); color: var(--icon-color); transition: all 0.2s;
 }
-body.morning .icon-btn,
-body.afternoon .icon-btn { color: #333; }
-.icon-btn:hover { opacity: 0.7; }
-body.morning .icon-btn,
-body.afternoon .icon-btn {
-  color: #fff; background: transparent; color: rgba(42,37,32,0.7); }
+.icon-btn svg { stroke: var(--icon-color) !important; }
 .icon-btn:hover { opacity: 0.7; }
 
-/* header用户按钮：圆角边框样式 */
-.user-btn {
+/* 用户/语言按钮 */
+.user-btn, .lang-btn {
   width: auto; height: auto; padding: 6px 14px; border-radius: 18px;
-  border: 1px solid rgba(255,255,255,0.25); background: transparent;
-  color: #fff; font-size: 12px; font-weight: 500; cursor: pointer;
+  border: 1px solid var(--header-btn-border); background: transparent;
+  color: var(--icon-color); font-size: 12px; font-weight: 500; cursor: pointer;
   display: inline-flex; align-items: center; justify-content: center; gap: 6px;
   transition: all 0.2s;
 }
-body.morning .user-btn,
-body.afternoon .user-btn { border-color: rgba(0,0,0,0.2); color: #333; }
+.user-btn svg, .lang-btn svg { stroke: var(--icon-color) !important; }
 
 .logout-btn { display: none; }
 
-.lang-btn {
-  padding: 6px 14px; border-radius: 18px; border: 1px solid rgba(255,255,255,0.25);
-  background: transparent; color: #fff; font-size: 12px; font-weight: 500; cursor: pointer;
-  transition: all 0.2s;
-}
-body.morning .lang-btn,
-body.afternoon .lang-btn { border-color: rgba(0,0,0,0.2); color: #333; }
-
+/* ========================================
+   内容区
+   ======================================== */
 .main-text {
   font-size: 18px; line-height: 2.2; text-align: left;
-  color: #f0f0f0; white-space: pre-wrap; word-break: break-word;
+  color: var(--text-primary); white-space: pre-wrap; word-break: break-word;
 }
 .main-text::before {
-  content: '› '; color: #c9a96e; font-weight: bold;
+  content: '› '; color: var(--accent); font-weight: bold;
 }
-body.morning .main-text,
-body.afternoon .main-text { color: #3a3530; }
 
 .source {
-  text-align: left; font-size: 13px; color: rgba(255,255,255,0.4); margin-top: 20px;
-  padding-top: 16px; border-top: 1px solid rgba(255,255,255,0.1);
+  text-align: left; font-size: 13px; color: var(--text-secondary); margin-top: 20px;
+  padding-top: 16px; border-top: 1px solid var(--border-color);
 }
-body.morning .source,
-body.afternoon .source { color: rgba(0,0,0,0.4); border-color: rgba(0,0,0,0.1); }
 
+/* 分页指示器 */
+.page-indicator {
+  position: fixed; bottom: 70px; right: 20px;
+  background: var(--accent); color: #fff;
+  padding: 4px 10px; border-radius: 12px;
+  font-size: 11px; font-weight: 500;
+  opacity: 0.8;
+}
+
+.page-block {
+  position: relative;
+}
+
+/* ========================================
+   底部操作栏
+   ======================================== */
 .actions {
   position: fixed; bottom: 0; left: 0; width: 100%; z-index: 100;
   padding: 16px 20px; display: flex; justify-content: center; align-items: center; gap: 16px;
-  background: linear-gradient(to top, rgba(254,249,243,0.8) 0%, transparent 100%);
+  background: var(--bg-actions);
 }
-body.evening .actions,
-body.night .actions {
-  background: linear-gradient(to top, rgba(13,13,13,0.8) 0%, transparent 100%);
-}
-.action-btn {
+
+/* 底部操作按钮 */
+.action-btn, .ca-btn {
   display: flex; align-items: center; justify-content: center;
   background: none; border: none; cursor: pointer;
-  color: rgba(255,255,255,0.8); font-size: 18px; transition: all 0.2s;
+  color: var(--icon-color); font-size: 18px; transition: all 0.2s;
 }
-body.morning .action-btn,
-body.afternoon .action-btn { color: rgba(0,0,0,0.7); }
-.action-btn:hover { color: #4da6ff; transform: scale(1.1); }
-.action-btn.active { color: #4da6ff; }
+.action-btn svg, .ca-btn svg { stroke: var(--icon-color) !important; }
+.action-btn:hover, .ca-btn:hover { color: var(--accent-hover); transform: scale(1.1); }
+.action-btn.active { color: var(--accent-hover); }
+.ca-btn.active { color: var(--fav-active); }
+.ca-btn.active svg { stroke: none !important; fill: var(--fav-active) !important; }
 
-.loading { text-align: center; padding: 60px; color: rgba(255,255,255,0.5); }
+.loading { text-align: center; padding: 60px; color: var(--text-muted); }
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
-<script>loadFavorites().then(() => loadSlices());</script>
 </head>
 <body class="night">
 <div class="app">
@@ -158,22 +212,22 @@ function setTheme() {
 setTheme();
 
 const API = "/api";
-let currentPage = 1;
-let totalPages = 1;
 let currentIndex = 0;
 let slices = [];
-let prevSlice = null; // 记录上一页内容
 let lang = 'zh';
 let currentSliceId = null;
 let isAnimating = false;
 let favoritedIds = new Set();
 
 async function loadFavorites() {
-  const token = localStorage.getItem("token");
-  if (!token) { favoritedIds.clear(); return; }
+  const userStr = localStorage.getItem("user");
+  if (!userStr) { favoritedIds.clear(); return; }
+  const user = JSON.parse(userStr);
+  const username = user.username;
+  if (!username) { favoritedIds.clear(); return; }
   try {
     const res = await fetch(API + "/favorites", {
-      headers: { "Authorization": token }
+      headers: { "Authorization": username }
     });
     if (res.ok) {
       const data = await res.json();
@@ -196,13 +250,18 @@ async function loadSlices() {
     const res = await fetch(API + "/random");
     const data = await res.json();
     slices = data.slice ? [data.slice] : [];
-    totalPages = 1;
     currentIndex = 0;
     renderCurrent();
   } catch (err) {
     document.getElementById("content").innerHTML = '<div class="loading">加载失败</div>';
   }
 }
+
+// 存储当前内容的页面数据
+let currentPages = [];
+let currentPage = 1;
+let totalPages = 1;
+let currentSource = '';
 
 function renderCurrent() {
   const s = slices[currentIndex];
@@ -213,61 +272,138 @@ function renderCurrent() {
   if (lang === 'en' && s.english) displayText = s.english;
   
   const isFav = favoritedIds.has(s.id);
-  document.getElementById("content").innerHTML = `
-    <div class="main-text">${displayText}<span class="source-inline">—— ${s.source || '佚名'}</span></div>
+  currentSource = s.source || '佚名';
+  
+  // 固定每屏约 280 字（用户要求超过280字分屏）
+  // 根据屏幕大小约 400-800 字，取中间值
+  const charsPerScreen = Math.max(280, Math.min(800, Math.floor((window.innerHeight - 170) / 28 * 40)));
+  
+  // 生成页面数组
+  currentPages = [];
+  let remaining = displayText;
+  while (remaining.length > 0) {
+    const chunk = remaining.substring(0, charsPerScreen);
+    remaining = remaining.substring(charsPerScreen);
+    
+    if (remaining.length > 0) {
+      const lastPunct = chunk.lastIndexOf('。');
+      const lastComma = chunk.lastIndexOf('，');
+      const breakPos = Math.max(lastPunct, lastComma);
+      if (breakPos > charsPerScreen * 0.7) {
+        currentPages.push(chunk.substring(0, breakPos + 1));
+        remaining = chunk.substring(breakPos + 1) + remaining;
+      } else {
+        currentPages.push(chunk);
+      }
+    } else {
+      currentPages.push(chunk);
+    }
+  }
+  
+  currentPage = 1;
+  totalPages = currentPages.length;
+  
+  // 调试 - 显示分页信息
+  const debugDiv = document.createElement('div');
+  debugDiv.style.cssText = 'position:fixed;top:70px;left:10px;background:#333;color:#fff;padding:8px;font-size:12px;z-index:999;border-radius:4px;';
+  debugDiv.innerHTML = `屏高:${screenHeight} 每屏:${charsPerScreen} 总:${displayText.length} 实际页数:${totalPages}`;
+  document.body.appendChild(debugDiv);
+  setTimeout(() => debugDiv.remove(), 5000);
+  
+  renderPage();
+}
+
+function renderPage() {
+  const isFav = favoritedIds.has(currentSliceId);
+  const currentText = currentPages[currentPage - 1] || '';
+  const isFirstPage = currentPage === 1;
+  const isLastPage = currentPage === totalPages;
+  
+  // 根据是否是第一页/最后一页决定按钮配置
+  const prevBtn = isFirstPage ? `
+    <button class="ca-btn nav-btn disabled" id="prevBtn" title="已是第一页">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#ccc" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+    </button>
+  ` : `
+    <button class="ca-btn nav-btn" id="prevBtn" title="上一页">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
+    </button>
+  `;
+  
+  const nextBtn = isLastPage ? `
+    <button class="ca-btn nav-btn" id="nextBtn" title="下一条">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+  ` : `
+    <button class="ca-btn nav-btn" id="nextBtn" title="下一页">
+      <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
+    </button>
+  `;
+  
+  const pageIndicator = totalPages > 1 ? `
+    <div class="page-indicator">${currentPage}/${totalPages}</div>
+  ` : '';
+  
+  const bottomActions = `
     <div class="content-divider"></div>
     <div class="content-actions">
-      <button class="ca-btn nav-btn" id="prevBtn" title="上一条">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><polyline points="18 15 12 9 6 15"/></svg>
-      </button>
+      ${prevBtn}
+      ${pageIndicator}
       <button class="ca-btn icon-btn" id="copyBtn" title="复制">
         <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
       </button>
       <button class="ca-btn icon-btn fav-btn${isFav ? ' active' : ''}" id="favBtn">
         <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M19 21l-7-5-7 5V5a2 2 0 0 1 2-2h10a2 2 0 0 1 2 2z"/></svg>
       </button>
-      <button class="ca-btn nav-btn" id="nextBtn" title="下一条">
-        <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><polyline points="6 9 12 15 18 9"/></svg>
-      </button>
+      ${nextBtn}
     </div>
   `;
   
-  // 绑定按钮事件
-  document.getElementById("prevBtn").addEventListener("click", () => goToSlice(-1));
-  document.getElementById("nextBtn").addEventListener("click", () => goToSlice(1));
-  document.getElementById("copyBtn").addEventListener("click", copyText);
-    document.getElementById("favBtn").addEventListener("click", toggleContentFav);
+  const screenHeight = window.innerHeight - 70 - 100;
+  const pageContent = `
+    <div class="page-block" style="min-height: ${screenHeight}px; padding: 70px 28px 100px; box-sizing: border-box;">
+      <div class="main-text">${currentText}<span class="source-inline">—— ${currentSource}</span></div>
+      ${bottomActions}
+    </div>
+  `;
   
+  document.getElementById("content").innerHTML = pageContent;
   document.getElementById("content").scrollTop = 0;
+  
+  // 绑定按钮事件
+  document.getElementById("prevBtn")?.addEventListener("click", prevPage);
+  document.getElementById("nextBtn")?.addEventListener("click", nextPage);
+  document.getElementById("copyBtn")?.addEventListener("click", copyText);
+  document.getElementById("favBtn")?.addEventListener("click", toggleContentFav);
 }
 
-// 简化的goToSlice - 去掉动画，直接加载新内容
+function prevPage() {
+  if (currentPage > 1) {
+    currentPage--;
+    renderPage();
+  }
+}
+
+async function nextPage() {
+  if (currentPage < totalPages) {
+    // 还有下一页，继续当前内容
+    currentPage++;
+    renderPage();
+  } else {
+    // 最后一页，加载新内容
+    goToSlice(1);
+  }
+}
+
+// 加载新内容（随机获取）
 async function goToSlice(direction) {
-  console.log('goToSlice:', direction);
+  console.log('goToSlice: loading new content');
   document.getElementById("content").innerHTML = '<div class="loading">加载中...</div>';
   try {
-    // 向上翻（-1）：如果有上一页记录，加载上一页
-    if (direction === -1 && prevSlice) {
-      slices = [prevSlice];
-      prevSlice = null; // 清除上一页记录
-      currentIndex = 0;
-      totalPages = 1;
-      currentPage = 1;
-      renderCurrent();
-      return;
-    }
-    
-    // 向下翻（1）或没有上一页记录：随机获取
     const res = await fetch(API + "/random");
     const data = await res.json();
-    // 保存当前内容作为上一页
-    if (slices.length > 0) {
-      prevSlice = { ...slices[currentIndex] };
-    }
     slices = data.slice ? [data.slice] : [];
     currentIndex = 0;
-    totalPages = 1;
-    currentPage = 1;
     renderCurrent();
   } catch (err) {
     document.getElementById("content").innerHTML = '<div class="loading">加载失败</div>';
@@ -277,7 +413,45 @@ async function goToSlice(direction) {
 document.getElementById("langBtn").onclick = () => {
   lang = lang === 'zh' ? 'en' : 'zh';
   document.getElementById("langBtn").textContent = lang === 'zh' ? 'EN' : '中文';
-  renderCurrent();
+  // 重新生成页面数据并渲染
+  const s = slices[currentIndex];
+  if (s) {
+    let displayText = s.modern || s.content || '';
+    if (lang === 'en' && s.english) displayText = s.english;
+    
+    const screenHeight = window.innerHeight - 70 - 100;
+    const lineHeight = 28;
+    const charsPerLine = 40;
+    const linesPerScreen = Math.floor(screenHeight / lineHeight);
+    const charsPerScreen = linesPerScreen * charsPerLine;
+    
+    // 重新生成分页数据
+    currentPages = [];
+    let remaining = displayText;
+    while (remaining.length > 0) {
+      const chunk = remaining.substring(0, charsPerScreen);
+      remaining = remaining.substring(charsPerScreen);
+      
+      if (remaining.length > 0) {
+        const lastPunct = chunk.lastIndexOf('。');
+        const lastComma = chunk.lastIndexOf('，');
+        const breakPos = Math.max(lastPunct, lastComma);
+        if (breakPos > charsPerScreen * 0.7) {
+          currentPages.push(chunk.substring(0, breakPos + 1));
+          remaining = chunk.substring(breakPos + 1) + remaining;
+        } else {
+          currentPages.push(chunk);
+        }
+      } else {
+        currentPages.push(chunk);
+      }
+    }
+    
+    totalPages = currentPages.length;
+    if (currentPage > totalPages) currentPage = totalPages;
+    currentSource = s.source || '佚名';
+    renderPage();
+  }
 };
 
 document.getElementById("userBtn").onclick = () => {
@@ -294,8 +468,33 @@ let touchStartY = 0;
 document.addEventListener("touchstart", (e) => { touchStartY = e.changedTouches[0].screenY; }, { passive: true });
 document.addEventListener("touchend", (e) => {
   const diff = e.changedTouches[0].screenY - touchStartY;
-  if (diff < -80) goToSlice(1);
-  if (diff > 80) goToSlice(-1);
+  const scrollEl = document.getElementById("content");
+  
+  // 向上滑 > 80px 翻到下一篇
+  if (diff < -80) {
+    const scrollTop = scrollEl.scrollTop;
+    if (scrollTop < 10) {
+      // 已在顶部，翻到下一篇
+      goToSlice(1);
+    } else {
+      // 没到顶部，先滚到顶部
+      scrollEl.scrollTo({ top: 0, behavior: 'smooth' });
+    }
+  }
+  // 向下滑 > 80px 翻到上一篇
+  if (diff > 80) {
+    const scrollTop = scrollEl.scrollTop;
+    const scrollHeight = scrollEl.scrollHeight;
+    const clientHeight = scrollEl.clientHeight;
+    const atBottom = scrollTop + clientHeight >= scrollHeight - 10;
+    if (atBottom) {
+      // 已在底部，翻到上一篇
+      goToSlice(-1);
+    } else {
+      // 没到底部，先滚到底部
+      scrollEl.scrollTo({ top: scrollHeight, behavior: 'smooth' });
+    }
+  }
 }, { passive: true });
 
 document.addEventListener("keydown", (e) => {
@@ -305,13 +504,16 @@ document.addEventListener("keydown", (e) => {
 
 function toggleContentFav() {
   if (!currentSliceId) return;
-  const token = localStorage.getItem("token");
-  if (!token) { alert("请先登录"); return; }
+  const userStr = localStorage.getItem("user");
+  if (!userStr) { alert("请先登录"); return; }
+  const user = JSON.parse(userStr);
+  const username = user.username;
+  if (!username) { alert("请先登录"); return; }
   const btn = document.getElementById('favBtn');
   const isActive = btn.classList.contains('active');
   fetch(API + "/favorites", {
     method: isActive ? "DELETE" : "POST",
-    headers: { "Content-Type": "application/json", "Authorization": token },
+    headers: { "Content-Type": "application/json", "Authorization": username },
     body: JSON.stringify({ slice_id: currentSliceId })
   }).then(res => {
     if (res.ok) {
