@@ -143,27 +143,17 @@ html, body {
   padding-top: 16px; border-top: 1px solid var(--border-color);
 }
 
-/* 分页指示器 - 跟随内容，放在出处后面 */
+/* 分页指示器 */
 .page-indicator {
-  display: inline-flex; align-items: center; justify-content: center;
+  position: fixed; bottom: 70px; right: 20px;
   background: var(--accent); color: #fff;
-  padding: 4px 12px; border-radius: 12px;
-  font-size: 15px; font-weight: 600;
-  margin-left: 12px;
-  vertical-align: middle;
-  box-shadow: 0 2px 6px rgba(201, 169, 110, 0.25);
+  padding: 4px 10px; border-radius: 12px;
+  font-size: 11px; font-weight: 500;
+  opacity: 0.8;
 }
 
 .page-block {
   position: relative;
-}
-
-/* 内容操作栏 - 靠左对齐，图标间距小 */
-.content-actions {
-  display: flex; align-items: center; justify-content: flex-start; gap: 12px;
-  margin-top: 16px;
-  padding-top: 16px;
-  border-top: 1px solid var(--border-color);
 }
 
 /* ========================================
@@ -228,7 +218,6 @@ let lang = 'zh';
 let currentSliceId = null;
 let isAnimating = false;
 let favoritedIds = new Set();
-let touchStartY = 0;
 
 // 历史记录栈（按顺序回退用）
 let historyStack = [];
@@ -327,11 +316,13 @@ function renderPage() {
   
   // 根据是否是第一页/最后一页决定按钮配置（已移除上下翻按钮，仅保留页码）
   const pageIndicator = totalPages > 1 ? `
-    <span class="page-indicator" id="pageIndicator">${currentPage}/${totalPages}</span>
+    <div class="page-indicator">${currentPage}/${totalPages}</div>
   ` : '';
   
   const bottomActions = `
+    <div class="content-divider"></div>
     <div class="content-actions">
+      ${pageIndicator}
       <button class="ca-btn icon-btn" id="copyBtn" title="复制">
         <svg viewBox="0 0 24 24" fill="none" stroke="#000" stroke-width="2"><rect x="9" y="9" width="13" height="13" rx="2"/><path d="M5 15H4a2 2 0 0 1-2-2V4a2 2 0 0 1 2-2h9a2 2 0 0 1 2 2v1"/></svg>
       </button>
@@ -343,12 +334,8 @@ function renderPage() {
   
   const screenHeight = window.innerHeight - 70 - 100;
   const pageContent = `
-    <div class="page-block" style="min-height: ${screenHeight}px; padding: 70px 28px 60px; box-sizing: border-box;">
-      <div class="main-text">${currentText}</div>
-      <div class="source" style="display: flex; align-items: center; flex-wrap: wrap; gap: 8px;">
-        <span>—— ${currentSource}</span>
-        ${pageIndicator}
-      </div>
+    <div class="page-block" style="min-height: ${screenHeight}px; padding: 70px 28px 100px; box-sizing: border-box;">
+      <div class="main-text">${currentText}<span class="source-inline">—— ${currentSource}</span></div>
       ${bottomActions}
     </div>
   `;
@@ -359,15 +346,6 @@ function renderPage() {
   // 绑定按钮事件
   document.getElementById("copyBtn")?.addEventListener("click", copyText);
   document.getElementById("favBtn")?.addEventListener("click", toggleContentFav);
-  document.getElementById("pageIndicator")?.addEventListener("click", () => {
-    // 点击页码：分页内往返切换（第一页→最后一页，最后一页→第一页）
-    if (currentPage === 1 && totalPages > 1) {
-      currentPage = totalPages;
-    } else {
-      currentPage = 1;
-    }
-    renderPage();
-  });
 }
 
 // 加载新内容（随机获取），direction 1=下一页(随机) -1=上一页(从历史恢复)
@@ -460,6 +438,7 @@ document.getElementById("userBtn").onclick = () => {
 };
 
 
+let touchStartY = 0;
 document.addEventListener("touchstart", (e) => { touchStartY = e.changedTouches[0].screenY; }, { passive: true });
 document.addEventListener("touchend", (e) => {
   const diff = e.changedTouches[0].screenY - touchStartY;
@@ -470,37 +449,51 @@ document.addEventListener("touchend", (e) => {
   const atTop = scrollTop < 10;
   const atBottom = scrollTop + clientHeight >= scrollHeight - 10;
   
-  // 上滑 > 80px：随机下一条（新内容）
+  // 上滑 > 80px
   if (diff < -80) {
-    if (atTop || currentPage > 1) {
-      // 在顶部或中间页，先滚到顶部
-      scrollEl.scrollTo({ top: 0, behavior: 'smooth' });
-    } else {
-      // 已在顶部，直接加载新内容
+    if (currentPage > 1) {
+      // 不是第一页，翻到上一页
+      currentPage--;
+      renderPage();
+    } else if (atTop) {
+      // 在顶部，随机下一条
       goToSlice(1);
+    } else {
+      // 没到顶部，先滚到顶部
+      scrollEl.scrollTo({ top: 0, behavior: 'smooth' });
     }
   }
   
-  // 下滑 > 80px：从历史栈回退上一条
+  // 下滑 > 80px
   if (diff > 80) {
-    if (atBottom || currentPage < totalPages) {
-      // 没到底部或中间页，先滚到底部
-      scrollEl.scrollTo({ top: scrollHeight, behavior: 'smooth' });
-    } else {
-      // 已在底部，从历史回退
+    if (currentPage < totalPages) {
+      // 不是最后一页，翻到下一页
+      currentPage++;
+      renderPage();
+    } else if (atBottom) {
+      // 在底部，从历史栈退回上一条
       goToSlice(-1);
+    } else {
+      // 没到底部，先滚到底部
+      scrollEl.scrollTo({ top: scrollHeight, behavior: 'smooth' });
     }
   }
 }, { passive: true });
 
 document.addEventListener("keydown", (e) => {
   if (e.key === 'ArrowDown' || e.key === ' ') {
-    // 下键/空格：随机下一条
-    goToSlice(1);
+    if (currentPage < totalPages) {
+      currentPage++;
+      renderPage();
+    } else {
+      goToSlice(1);
+    }
   }
   if (e.key === 'ArrowUp') {
-    // 上键：从历史回退上一条
-    goToSlice(-1);
+    if (currentPage > 1) {
+      currentPage--;
+      renderPage();
+    }
   }
 });
 
