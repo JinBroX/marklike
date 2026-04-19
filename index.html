@@ -228,6 +228,7 @@ let lang = 'zh';
 let currentSliceId = null;
 let isAnimating = false;
 let favoritedIds = new Set();
+let touchStartY = 0;
 
 // 历史记录栈（按顺序回退用）
 let historyStack = [];
@@ -359,14 +360,13 @@ function renderPage() {
   document.getElementById("copyBtn")?.addEventListener("click", copyText);
   document.getElementById("favBtn")?.addEventListener("click", toggleContentFav);
   document.getElementById("pageIndicator")?.addEventListener("click", () => {
-    // 点击页码翻到下一页/下半段
-    if (currentPage < totalPages) {
-      currentPage++;
-      renderPage();
+    // 点击页码：分页内往返切换（第一页→最后一页，最后一页→第一页）
+    if (currentPage === 1 && totalPages > 1) {
+      currentPage = totalPages;
     } else {
-      // 最后一页，加载新内容
-      goToSlice(1);
+      currentPage = 1;
     }
+    renderPage();
   });
 }
 
@@ -460,7 +460,6 @@ document.getElementById("userBtn").onclick = () => {
 };
 
 
-let touchStartY = 0;
 document.addEventListener("touchstart", (e) => { touchStartY = e.changedTouches[0].screenY; }, { passive: true });
 document.addEventListener("touchend", (e) => {
   const diff = e.changedTouches[0].screenY - touchStartY;
@@ -471,51 +470,37 @@ document.addEventListener("touchend", (e) => {
   const atTop = scrollTop < 10;
   const atBottom = scrollTop + clientHeight >= scrollHeight - 10;
   
-  // 上滑 > 80px
+  // 上滑 > 80px：随机下一条（新内容）
   if (diff < -80) {
-    if (currentPage > 1) {
-      // 不是第一页，翻到上一页
-      currentPage--;
-      renderPage();
-    } else if (atTop) {
-      // 在顶部，随机下一条
-      goToSlice(1);
-    } else {
-      // 没到顶部，先滚到顶部
+    if (atTop || currentPage > 1) {
+      // 在顶部或中间页，先滚到顶部
       scrollEl.scrollTo({ top: 0, behavior: 'smooth' });
+    } else {
+      // 已在顶部，直接加载新内容
+      goToSlice(1);
     }
   }
   
-  // 下滑 > 80px
+  // 下滑 > 80px：从历史栈回退上一条
   if (diff > 80) {
-    if (currentPage < totalPages) {
-      // 不是最后一页，翻到下一页
-      currentPage++;
-      renderPage();
-    } else if (atBottom) {
-      // 在底部，从历史栈退回上一条
-      goToSlice(-1);
-    } else {
-      // 没到底部，先滚到底部
+    if (atBottom || currentPage < totalPages) {
+      // 没到底部或中间页，先滚到底部
       scrollEl.scrollTo({ top: scrollHeight, behavior: 'smooth' });
+    } else {
+      // 已在底部，从历史回退
+      goToSlice(-1);
     }
   }
 }, { passive: true });
 
 document.addEventListener("keydown", (e) => {
   if (e.key === 'ArrowDown' || e.key === ' ') {
-    if (currentPage < totalPages) {
-      currentPage++;
-      renderPage();
-    } else {
-      goToSlice(1);
-    }
+    // 下键/空格：随机下一条
+    goToSlice(1);
   }
   if (e.key === 'ArrowUp') {
-    if (currentPage > 1) {
-      currentPage--;
-      renderPage();
-    }
+    // 上键：从历史回退上一条
+    goToSlice(-1);
   }
 });
 
