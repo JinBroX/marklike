@@ -563,20 +563,14 @@ async function searchSlices() {
   container.innerHTML = '<div class="loading">搜索中...</div>';
   
   try {
-    // 加载所有数据进行搜索（简单实现）
-    const res = await fetch(`${API}/premium?page=1&limit=1000`);
+    // 后端支持 keyword 参数，直接传 keyword
+    const res = await fetch(`${API}/premium?page=1&limit=20&keyword=${encodeURIComponent(keyword)}`);
     const data = await res.json();
     
-    const filtered = data.slices.filter(s => 
-      (s.source && s.source.includes(keyword)) ||
-      (s.content && s.content.includes(keyword)) ||
-      (s.modern && s.modern.includes(keyword))
-    );
-    
-    if (filtered.length === 0) {
+    if (data.slices.length === 0) {
       container.innerHTML = '<div class="loading">没有找到匹配的文章</div>';
     } else {
-      container.innerHTML = filtered.map(s => `
+      container.innerHTML = data.slices.map(s => `
         <div class="item">
           <div class="item-checkbox">
             <input type="checkbox" value="${s.id}" onchange="updateBatchBar()">
@@ -593,6 +587,7 @@ async function searchSlices() {
         </div>
       `).join('');
       selectedIds = []; // 搜索后清空选中状态
+      renderPagination(); // 更新搜索结果的分页
     }
   } catch (e) {
     container.innerHTML = '<div class="loading">搜索失败</div>';
