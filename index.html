@@ -526,7 +526,7 @@ function toggleContentFav() {
 }
 
 function copyText() {
-  const mainText = currentPages[currentPage - 1] || '';
+  const mainText = currentPages.join('');
   const sourceText = '—— ' + currentSource;
   const url = window.location.href;
   const fullDomain = url.replace('https://', '').replace('http://', '');
