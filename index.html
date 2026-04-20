@@ -526,8 +526,8 @@ function toggleContentFav() {
 }
 
 function copyText() {
-  const mainText = document.querySelector('.main-text')?.textContent || '';
-  const sourceText = document.querySelector('.source-text')?.textContent || '';
+  const mainText = currentPages[currentPage - 1] || '';
+  const sourceText = '—— ' + currentSource;
   const url = window.location.href;
   const fullDomain = url.replace('https://', '').replace('http://', '');
   const domain = fullDomain.split('/').slice(0, 2).join('/').replace(/\/index\.html$/, '');
