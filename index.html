@@ -3,9 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-<title>MarkLike - 古籍精选</title>
-<link rel="manifest" href="/manifest.json">
-<link rel="apple-touch-icon" href="/icon-192.png">
+<title>marklike</title>
 <link rel="stylesheet" href="/css/all.min.css?v=2026041921">
 <link rel="stylesheet" href="/css/fonts.css?v=2026041701">
 <style>
@@ -190,42 +188,6 @@ html, body {
 .ca-btn.active svg { stroke: none !important; fill: var(--fav-active) !important; }
 
 .loading { text-align: center; padding: 60px; color: var(--text-muted); }
-
-/* 添加桌面提示条 */
-#installPrompt {
-  position: fixed;
-  bottom: 0;
-  left: 0;
-  right: 0;
-  background: linear-gradient(135deg, #c9a96e, #d4af37);
-  padding: 12px 16px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  font-size: 14px;
-  color: #1a1a1a;
-  z-index: 9999;
-  box-shadow: 0 -2px 10px rgba(0,0,0,0.3);
-}
-
-#installPrompt button {
-  padding: 6px 14px;
-  border-radius: 20px;
-  border: none;
-  font-size: 13px;
-  cursor: pointer;
-}
-
-#installBtn {
-  background: #1a1a1a;
-  color: #c9a96e;
-}
-
-#dismissBtn {
-  background: rgba(255,255,255,0.3);
-  color: #1a1a1a;
-}
 </style>
 <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
 </head>
@@ -398,21 +360,27 @@ function renderPage() {
   document.getElementById("copyBtn")?.addEventListener("click", copyText);
   document.getElementById("favBtn")?.addEventListener("click", toggleContentFav);
   document.getElementById("pageIndicator")?.addEventListener("click", () => {
-    // 点击分屏按钮：顺序跳到下一屏
-    if (totalPages > 1) {
-      currentPage++;
-      if (currentPage > totalPages) {
-        currentPage = 1; // 最后一页后循环回第一页
-      }
-      renderPage();
+    // 点击页码：分页内往返切换（第一页→最后一页，最后一页→第一页）
+    if (currentPage === 1 && totalPages > 1) {
+      currentPage = totalPages;
+    } else {
+      currentPage = 1;
     }
+    renderPage();
   });
 }
 
 // 加载新内容（随机获取），direction 1=下一页(随机) -1=上一页(从历史恢复)
 async function goToSlice(direction) {
   if (direction === 1) {
-    // 随机下一条：把当前内容加入历史栈
+    // 上滑：先处理分屏翻页，如果到最后一页则保存历史并随机下一条
+    if (currentPage < totalPages) {
+      // 还有下一页，先翻分屏页
+      currentPage++;
+      renderPage();
+      return;
+    }
+    // 当前分屏翻完了，保存当前内容到历史栈，然后加载新内容
     const currentSlice = slices[currentIndex];
     if (currentSlice) {
       historyStack.push(currentSlice);
@@ -421,7 +389,14 @@ async function goToSlice(direction) {
     }
     console.log('goToSlice: loading new random content');
   } else {
-    // 从历史栈恢复上一条
+    // 下滑回退：先回退分屏页，再回退到上一条
+    if (currentPage > 1) {
+      // 还有上一页，先回退分屏
+      currentPage--;
+      renderPage();
+      return;
+    }
+    // 分屏已回退完毕，从历史栈恢复上一条
     if (historyStack.length === 0) {
       console.log('goToSlice: no history, ignore');
       return;
@@ -440,59 +415,9 @@ async function goToSlice(direction) {
     slices = data.slice ? [data.slice] : [];
     currentIndex = 0;
     renderCurrent();
-    // 阅读计数 + 显示添加桌面提示
-    showInstallPrompt();
   } catch (err) {
     document.getElementById("content").innerHTML = '<div class="loading">加载失败</div>';
   }
-}
-
-// 检测是否是PWA模式
-function isPWA() {
-  return window.matchMedia('(display-mode: standalone)').matches || 
-         window.navigator.standalone === true;
-}
-
-// 显示添加桌面提示
-function showInstallPrompt() {
-  // 如果是PWA模式，不显示提示
-  if (isPWA()) return;
-  
-  // 阅读计数
-  const count = parseInt(localStorage.getItem('readCount') || '0') + 1;
-  localStorage.setItem('readCount', count);
-  
-  // 每阅读21篇显示一次提示
-  if (count % 21 !== 0) return;
-  
-  // 已经显示过就不再显示
-  
-  
-  const prompt = document.createElement('div');
-  prompt.id = 'installPrompt';
-  prompt.innerHTML = `
-    <span>喜欢MarkLike？</span>
-    <button id="installBtn">添加到桌面</button>
-    <button id="dismissBtn">暂不需要</button>
-  `;
-  document.body.appendChild(prompt);
-  
-  document.getElementById('installBtn').onclick = () => {
-    
-    prompt.remove();
-    // 根据设备类型显示不同提示
-    const isIOS = /iPhone|iPad|iPod/i.test(navigator.userAgent);
-    if (isIOS) {
-      alert('iOS用户：请点底部 Safari 的分享按钮(方形箭头)\n→ 选择"添加到主屏幕"');
-    } else {
-      alert('安卓用户：请点右上角菜单(三个点)\n→ 选择"添加到主屏幕"或"安装"');
-    }
-  };
-  
-  document.getElementById('dismissBtn').onclick = () => {
-    // removed dismiss logic
-    prompt.remove();
-  };
 }
 
 document.getElementById("langBtn").onclick = () => {
@@ -601,22 +526,14 @@ function toggleContentFav() {
 }
 
 function copyText() {
-  // 从完整数据取文本，而不是从当前DOM元素（当前屏可能只是文章的一部分）
-  const s = slices[currentIndex];
-  if (!s) return;
-  
-  // 根据当前语言模式选择完整文本
-  let fullText = s.modern || s.content || '';
-  if (lang === 'en' && s.english) fullText = s.english;
-  
-  const sourceEl = document.querySelector('.source');
-  const sourceText = sourceEl?.textContent?.replace(/\d+\/\d+$/, '').trim() || '';
+  const mainText = document.querySelector('.main-text')?.textContent || '';
+  const sourceText = document.querySelector('.source-text')?.textContent || '';
   const url = window.location.href;
   const fullDomain = url.replace('https://', '').replace('http://', '');
   const domain = fullDomain.split('/').slice(0, 2).join('/').replace(/\/index\.html$/, '');
   
-  const plainText = fullText + '\n\n' + sourceText + '\n' + domain;
-  const htmlText = fullText + '<br><br>' + sourceText + '<br><a href="' + url + '">' + domain + '</a>';
+  const plainText = mainText + '\n\n' + sourceText + '\n' + domain;
+  const htmlText = mainText + '<br><br>' + sourceText + '<br><a href="' + url + '">' + domain + '</a>';
   
   if (navigator.clipboard && navigator.clipboard.write) {
     const blobPlain = new Blob([plainText], { type: 'text/plain' });
