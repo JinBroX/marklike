@@ -307,7 +307,7 @@ const API = '/api';
 let adminUser = null;
 let currentPage = 1;
 let totalItems = 0;
-const limit = 20;
+const limit = 0; // 0 = 显示全部
 let selectedIds = []; // 保存翻页前的选中状态
 
 // 自动登录 - 使用7057709账户
@@ -442,7 +442,7 @@ async function loadSlices() {
   container.innerHTML = '<div class="loading">加载中...</div>';
   
   try {
-    const res = await fetch(`${API}/premium?page=${currentPage}&limit=${limit}`);
+    const res = await fetch(`${API}/slices?page=${currentPage}&limit=${limit}`);
     const data = await res.json();
     
     totalItems = data.pagination.total;
@@ -458,8 +458,8 @@ async function loadSlices() {
           </div>
           <div class="item-info">
             <div class="item-title">${s.source || '佚名'}</div>
-            <div class="item-meta">ID: ${s.id} | ${s.genre || '未分类'}</div>
-            <div class="item-preview">${(s.content || '').substring(0, 100)}...</div>
+            <div class="item-meta">ID: ${s.id} || '未分类'}</div>
+            <div class="item-preview">${(s.content_preview || s.content || '').substring(0, 100)}...</div>
           </div>
           <div class="item-actions">
             <button class="btn-edit" onclick="showEditModal(${s.id})">编辑</button>
@@ -564,7 +564,7 @@ async function searchSlices() {
   
   try {
     // 后端支持 keyword 参数，直接传 keyword
-    const res = await fetch(`${API}/premium?page=1&limit=20&keyword=${encodeURIComponent(keyword)}`);
+    const res = await fetch(`${API}/slices?limit=0&keyword=${encodeURIComponent(keyword)}`);
     const data = await res.json();
     
     if (data.slices.length === 0) {
@@ -578,7 +578,7 @@ async function searchSlices() {
           <div class="item-info">
             <div class="item-title">${s.source || '佚名'}</div>
             <div class="item-meta">ID: ${s.id}</div>
-            <div class="item-preview">${(s.content || '').substring(0, 100)}...</div>
+            <div class="item-preview">${(s.content_preview || s.content || '').substring(0, 100)}...</div>
           </div>
           <div class="item-actions">
             <button class="btn-edit" onclick="showEditModal(${s.id})">编辑</button>
@@ -601,7 +601,7 @@ async function showEditModal(id) {
   
   // 加载文章数据
   try {
-    const res = await fetch(`${API}/premium/${id}`);
+    const res = await fetch(`${API}/slices/${id}`);
     const data = await res.json();
     if (data.slice) {
       document.getElementById('editSource').value = data.slice.source || '';
@@ -642,7 +642,7 @@ async function saveSlice() {
   }
   
   const method = id ? 'PUT' : 'POST';
-  const url = id ? `${API}/premium/${id}` : `${API}/premium`;
+  const url = id ? `${API}/slices/${id}` : `${API}/slices`;
   
   try {
     const res = await fetch(url, {
@@ -668,7 +668,7 @@ async function deleteSlice(id) {
   if (!confirm('确定要删除这篇文章吗？删除后无法恢复！')) return;
   
   try {
-    const res = await fetch(`${API}/premium/${id}`, {
+    const res = await fetch(`${API}/slices/${id}`, {
       method: 'DELETE',
       headers: { 'X-Username': adminUser.username }
     });
@@ -714,7 +714,7 @@ async function batchDelete() {
   let success = 0, fail = 0;
   for (const id of ids) {
     try {
-      const res = await fetch(`${API}/premium/${id}`, {
+      const res = await fetch(`${API}/slices/${id}`, {
         method: 'DELETE',
         headers: { 'X-Username': adminUser.username }
       });
