@@ -307,14 +307,14 @@ const API = '/api';
 let adminUser = null;
 let currentPage = 1;
 let totalItems = 0;
-const limit = 0; // 0 = 显示全部
+const limit = 20;
 let selectedIds = []; // 保存翻页前的选中状态
 
 // 自动登录 - 使用7057709账户
 (function autoLogin() {
   adminUser = { username: '7057709', is_super: 1 };
   render();
-  loadAllSlices();
+  loadSlices();
 })();
 
 function render() {
@@ -458,8 +458,8 @@ async function loadSlices() {
           </div>
           <div class="item-info">
             <div class="item-title">${s.source || '佚名'}</div>
-            <div class="item-meta">ID: ${s.id} || '未分类'}</div>
-            <div class="item-preview">${(s.content_preview || s.content || '').substring(0, 100)}...</div>
+            <div class="item-meta">ID: ${s.id} | ${s.genre || '未分类'}</div>
+            <div class="item-preview">${(s.content || '').substring(0, 100)}...</div>
           </div>
           <div class="item-actions">
             <button class="btn-edit" onclick="showEditModal(${s.id})">编辑</button>
@@ -564,7 +564,7 @@ async function searchSlices() {
   
   try {
     // 后端支持 keyword 参数，直接传 keyword
-    const res = await fetch(`${API}/slices?limit=0&keyword=${encodeURIComponent(keyword)}`);
+    const res = await fetch(`${API}/slices?page=1&limit=20&keyword=${encodeURIComponent(keyword)}`);
     const data = await res.json();
     
     if (data.slices.length === 0) {
@@ -578,7 +578,7 @@ async function searchSlices() {
           <div class="item-info">
             <div class="item-title">${s.source || '佚名'}</div>
             <div class="item-meta">ID: ${s.id}</div>
-            <div class="item-preview">${(s.content_preview || s.content || '').substring(0, 100)}...</div>
+            <div class="item-preview">${(s.content || '').substring(0, 100)}...</div>
           </div>
           <div class="item-actions">
             <button class="btn-edit" onclick="showEditModal(${s.id})">编辑</button>
@@ -603,12 +603,11 @@ async function showEditModal(id) {
   try {
     const res = await fetch(`${API}/slices/${id}`);
     const data = await res.json();
-    if (data.slice) {
-      document.getElementById('editSource').value = data.slice.source || '';
-      document.getElementById('editOriginal').value = data.slice.original || data.slice.content || '';
-      document.getElementById('editModern').value = data.slice.modern || '';
-      document.getElementById('editEnglish').value = data.slice.english || '';
-    }
+    const d = data.slice || data;
+    document.getElementById('editSource').value = d.source || '';
+    document.getElementById('editOriginal').value = d.original || d.content || '';
+    document.getElementById('editModern').value = d.modern || '';
+    document.getElementById('editEnglish').value = d.english || '';
   } catch (e) {}
   
   modal.classList.add('show');
